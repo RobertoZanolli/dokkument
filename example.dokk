@@ -1,0 +1,22 @@
+# Esempio file .dokk per dokkument
+# Questo file mostra come organizzare i link alla documentazione aziendale
+
+# === Documentazione Generale ===
+"Documentazione API" -> "https://api.example.com/docs"
+"Wiki Aziendale" -> "https://wiki.company.com"
+"Linee Guida Sviluppo" -> "https://docs.company.com/dev-guidelines"
+
+# === Repository e Codice ===
+"Repository Principale" -> "https://github.com/company/main-app"
+"Repository Frontend" -> "https://github.com/company/frontend"
+"Repository API" -> "https://github.com/company/api-server"
+
+# === Monitoring e DevOps ===
+"Dashboard Grafana" -> "https://grafana.company.com"
+"Logs Kibana" -> "https://kibana.company.com"
+"CI/CD Jenkins" -> "https://jenkins.company.com"
+
+# === Strumenti Esterni ===
+"Jira Issues" -> "https://company.atlassian.net"
+"Confluence" -> "https://company.atlassian.net/wiki"
+"Slack Workspace" -> "https://company.slack.com"

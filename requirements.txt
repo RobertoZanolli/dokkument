@@ -1,0 +1,18 @@
+# Core requirements - Il progetto usa solo librerie standard Python
+# Nessuna dipendenza esterna obbligatoria
+
+# Optional requirements per una migliore esperienza utente
+# Installa con: pip install dokkument[enhanced]
+# rich>=10.0.0
+# click>=8.0.0  
+# colorama>=0.4.4
+
+# Development requirements
+# Installa con: pip install dokkument[dev]
+# pytest>=7.0.0
+# pytest-cov>=4.0.0
+# black>=22.0.0
+# isort>=5.0.0
+# flake8>=5.0.0
+# mypy>=1.0.0
+# pre-commit>=3.0.0
