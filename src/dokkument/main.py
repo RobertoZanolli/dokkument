@@ -30,7 +30,7 @@ class DokkumentApp:
 
     def run_interactive_mode(self, scan_path: Path = None):
         """
-        Esegue l'applicazione in modalit� interattiva
+        Esegue l'applicazione in modalit interattiva
 
         Args:
             scan_path: Directory da scansionare (default: directory corrente)
@@ -86,7 +86,7 @@ class DokkumentApp:
 
     def run_list_mode(self, scan_path: Path = None, format_type: str = "text"):
         """
-        Esegue l'applicazione in modalit� lista (non interattiva)
+        Esegue l'applicazione in modalit lista (non interattiva)
 
         Args:
             scan_path: Directory da scansionare
@@ -113,7 +113,7 @@ class DokkumentApp:
                 for i, entry in enumerate(entries, 1):
                     print(f"{i:2d}. {entry.description}")
                     print(f"    {entry.url}")
-                    print(f"    =� {entry.file_path}")
+                    print(f"    = {entry.file_path}")
                     print()
 
         except Exception as e:
@@ -124,7 +124,7 @@ class DokkumentApp:
         self, scan_path: Path = None, link_indices: list = None, open_all: bool = False
     ):
         """
-        Esegue l'applicazione in modalit� apertura diretta
+        Esegue l'applicazione in modalit apertura diretta
 
         Args:
             scan_path: Directory da scansionare
@@ -186,7 +186,7 @@ def create_argument_parser() -> argparse.ArgumentParser:
         description="Gestore CLI per documentazione aziendale tramite file .dokk",
         epilog="""
 Esempi di uso:
-  dokkument                        # Modalità interattiva
+  dokkument                        # Modalita interattiva
   dokkument --list                 # Lista tutti i link
   dokkument --list --format json  # Lista in formato JSON
   dokkument --open-all             # Apre tutti i link
@@ -219,14 +219,14 @@ Esempi di uso:
         help="Non scansionare ricorsivamente (sovrascrive configurazione)",
     )
 
-    # Modalit� operative (mutuamente esclusive)
+    # Modalit operative (mutuamente esclusive)
     mode_group = parser.add_mutually_exclusive_group()
 
     mode_group.add_argument(
         "--list",
         "-l",
         action="store_true",
-        help="Mostra solo la lista dei link senza modalit� interattiva",
+        help="Mostra solo la lista dei link senza modalit interattiva",
     )
 
     mode_group.add_argument(
@@ -242,13 +242,13 @@ Esempi di uso:
         help="Apre i link con gli indici specificati (es. --open 1 3 5)",
     )
 
-    # Opzioni per la modalit� lista
+    # Opzioni per la modalit lista
     parser.add_argument(
         "--format",
         "-f",
         choices=["text", "json", "markdown", "html"],
         default="text",
-        help="Formato di output per la modalit� lista (default: text)",
+        help="Formato di output per la modalit lista (default: text)",
     )
 
     # Opzioni di configurazione
@@ -274,7 +274,7 @@ Esempi di uso:
     parser.add_argument(
         "--debug",
         action="store_true",
-        help="Abilita la modalit� debug con informazioni aggiuntive",
+        help="Abilita la modalit debug con informazioni aggiuntive",
     )
 
     parser.add_argument("--version", "-v", action="version", version="dokkument 1.0.0")
@@ -321,7 +321,7 @@ def main():
         app.command_invoker.execute_command("config", args.config)
         return
 
-    # Gestione modalit� specifiche
+    # Gestione modalit specifiche
     if args.validate:
         # Scansiona prima
         scan_path = args.path or Path.cwd()
@@ -342,7 +342,7 @@ def main():
         app.command_invoker.execute_command("statistics")
         return
 
-    # Modalit� principali
+    # Modalit principali
     if args.list:
         app.run_list_mode(args.path, args.format)
     elif args.open_all:
@@ -350,7 +350,7 @@ def main():
     elif args.open:
         app.run_open_mode(args.path, link_indices=args.open)
     else:
-        # Modalit� interattiva (default)
+        # Modalit interattiva (default)
         app.run_interactive_mode(args.path)
 
 

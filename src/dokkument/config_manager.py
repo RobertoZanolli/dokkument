@@ -24,7 +24,7 @@ class ConfigManager:
         return cls._instance
 
     def __init__(self):
-        # Evita la reinizializzazione se l'istanza esiste già
+        # Evita la reinizializzazione se l'istanza esiste gi
         if hasattr(self, "_initialized"):
             return
 
@@ -191,7 +191,7 @@ class ConfigManager:
         """
         if config_path is None:
             if self._config_file is None:
-                # Se non c'è un file di configurazione esistente, crea uno nella home
+                # Se non c' un file di configurazione esistente, crea uno nella home
                 config_path = Path.home() / ".dokkument.json"
             else:
                 config_path = self._config_file
@@ -280,29 +280,29 @@ class ConfigManager:
 
     def print_config_info(self):
         """Stampa informazioni sulla configurazione corrente"""
-        print("ℹ️ Informazioni Configurazione dokkument")
+        print(" Informazioni Configurazione dokkument")
         print("=" * 50)
 
         if self._config_file:
-            print(f"📄 File configurazione: {self._config_file}")
+            print(f" File configurazione: {self._config_file}")
         else:
-            print("📄 File configurazione: Nessuno (usando configurazione predefinita)")
+            print(" File configurazione: Nessuno (usando configurazione predefinita)")
 
         print(f"= Scansione ricorsiva: {self.get('scanning.recursive')}")
-        print(f"🎨 Colori abilitati: {self.get('display.enable_colors')}")
+        print(f" Colori abilitati: {self.get('display.enable_colors')}")
         print(f"= Link cliccabili: {self.get('display.enable_hyperlinks')}")
         print(
             f"< Browser preferito: {self.get('browser.preferred_browser') or 'Predefinito del sistema'}"
         )
         print(f"= Validazione URL: {self.get('security.validate_urls')}")
-        print(f"= Modalit� debug: {self.get('advanced.debug_mode')}")
+        print(f"= Modalit debug: {self.get('advanced.debug_mode')}")
 
         # Validazione
         errors = self.validate_config()
         if errors:
-            print("\n�  Errori di configurazione:")
+            print("\n  Errori di configurazione:")
             for error in errors:
-                print(f"   • {error}")
+                print(f"    {error}")
         else:
             print("\n Configurazione valida")
 

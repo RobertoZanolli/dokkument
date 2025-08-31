@@ -108,7 +108,7 @@ class BrowserOpener:
             return False
 
     def _is_valid_url(self, url: str) -> bool:
-        """Valida se l'URL è ben formato"""
+        """Valida se l'URL e ben formato"""
         try:
             result = urlparse(url)
             return all([result.scheme, result.netloc]) and result.scheme in [
@@ -239,10 +239,10 @@ class BrowserOpener:
 
     def test_browser_availability(self) -> dict:
         """
-        Testa la disponibilità di browser comuni nel sistema
+        Testa la disponibilita di browser comuni nel sistema
 
         Returns:
-            dict: Dizionario con browser come chiave e disponibilità come valore
+            dict: Dizionario con browser come chiave e disponibilita come valore
         """
         common_browsers = {
             "default": "Browser predefinito del sistema",
@@ -270,7 +270,7 @@ class BrowserOpener:
         return results
 
     def _test_default_browser(self) -> bool:
-        """Testa se il browser predefinito è disponibile"""
+        """Testa se il browser predefinito e disponibile"""
         try:
             # Test semplice senza aprire effettivamente nulla
             webbrowser.get()
@@ -294,5 +294,5 @@ class BrowserOpener:
             )
         else:
             print(
-                "\nNessun browser specifico rilevato, verrà usato il predefinito del sistema"
+                "\nNessun browser specifico rilevato, verra usato il predefinito del sistema"
             )

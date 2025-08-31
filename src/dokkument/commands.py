@@ -169,7 +169,7 @@ class StatisticsCommand(Command):
             entries_by_file = self.link_manager.get_entries_by_file()
             print("\n" + self.cli_display.colorize("=Dettagli Debug:", "info"))
             for file_path, entries in entries_by_file.items():
-                print(f"  =� {file_path}: {len(entries)} link")
+                print(f"  = {file_path}: {len(entries)} link")
 
         return True
 
@@ -235,7 +235,7 @@ class ValidateLinksCommand(Command):
             )
             for entry, error in invalid_links:
                 print(f"  L {entry.description}: {error}")
-                print(f"     =� File: {entry.file_path}")
+                print(f"     = File: {entry.file_path}")
                 print(f"     = URL: {entry.url}")
                 print()
         else:

@@ -95,7 +95,7 @@ class CLIDisplay:
 
     def print_scanning_message(self, path: Path):
         """Stampa messaggio durante la scansione"""
-        print(self.colorize(f"🔍 Scansionando directory: {path}", "info"))
+        print(self.colorize(f" Scansionando directory: {path}", "info"))
         print()
 
     def print_scan_results(self, total_links: int, total_files: int):
@@ -103,12 +103,12 @@ class CLIDisplay:
         if total_links == 0:
             print(
                 self.colorize(
-                    "⚠️ Nessun file .dokk trovato nella directory corrente", "warning"
+                    " Nessun file .dokk trovato nella directory corrente", "warning"
                 )
             )
             print(
                 self.colorize(
-                    "ℹ️ Assicurati che ci siano file .dokk nel formato:", "info"
+                    " Assicurati che ci siano file .dokk nel formato:", "info"
                 )
             )
             print(
@@ -120,7 +120,7 @@ class CLIDisplay:
 
         print(
             self.colorize(
-                f"✅ Trovati {total_links} link in {total_files} file", "success"
+                f" Trovati {total_links} link in {total_files} file", "success"
             )
         )
         print()
@@ -137,7 +137,7 @@ class CLIDisplay:
             print(self.colorize("Nessun link disponibile", "warning"))
             return
 
-        print(self.colorize("📋 Link disponibili:", "header"))
+        print(self.colorize(" Link disponibili:", "header"))
         print()
 
         # Raggruppa per file se richiesto
@@ -152,7 +152,7 @@ class CLIDisplay:
             for file_path, file_entries in entries_by_file.items():
                 # Nome del file con colore
                 file_color = self.link_manager.get_file_color(file_path)
-                print(self.colorize(f"📁 {file_path.name}", "dim"))
+                print(self.colorize(f" {file_path.name}", "dim"))
 
                 for entry in file_entries:
                     description = self.link_manager.get_colored_description(entry)
@@ -204,74 +204,74 @@ class CLIDisplay:
 
     def print_opening_message(self, entry: DokkEntry):
         """Stampa messaggio quando si apre un link"""
-        print(self.colorize(f"🚀 Apertura di: {entry.description}", "info"))
-        print(self.colorize(f"🔗 URL: {entry.url}", "dim"))
+        print(self.colorize(f" Apertura di: {entry.description}", "info"))
+        print(self.colorize(f" URL: {entry.url}", "dim"))
 
     def print_opening_all_message(self, count: int):
         """Stampa messaggio quando si aprono tutti i link"""
-        print(self.colorize(f"🚀 Apertura di tutti i {count} link...", "warning"))
+        print(self.colorize(f" Apertura di tutti i {count} link...", "warning"))
         print(
             self.colorize(
-                "⚠️  Questo potrebbe aprire molte schede del browser!", "warning"
+                "  Questo potrebbe aprire molte schede del browser!", "warning"
             )
         )
 
     def print_success_message(self, message: str):
         """Stampa un messaggio di successo"""
-        print(self.colorize(f"✅ {message}", "success"))
+        print(self.colorize(f" {message}", "success"))
 
     def print_error_message(self, message: str):
         """Stampa un messaggio di errore"""
-        print(self.colorize(f"❌ {message}", "error"))
+        print(self.colorize(f" {message}", "error"))
 
     def print_warning_message(self, message: str):
         """Stampa un messaggio di avviso"""
-        print(self.colorize(f"⚠️  {message}", "warning"))
+        print(self.colorize(f"  {message}", "warning"))
 
     def print_info_message(self, message: str):
         """Stampa un messaggio informativo"""
-        print(self.colorize(f"ℹ️  {message}", "info"))
+        print(self.colorize(f"  {message}", "info"))
 
     def print_statistics(self, stats: Dict[str, int]):
         """Stampa le statistiche dei link"""
         print()
-        print(self.colorize("📊 Statistiche", "header"))
+        print(self.colorize(" Statistiche", "header"))
         print(self.colorize("-" * 30, "dim"))
         print(
-            f"📁 File .dokk trovati: {self.colorize(str(stats['total_files']), 'info')}"
+            f" File .dokk trovati: {self.colorize(str(stats['total_files']), 'info')}"
         )
-        print(f"🔗 Link totali: {self.colorize(str(stats['total_links']), 'info')}")
-        print(f"🌐 Domini unici: {self.colorize(str(stats['unique_domains']), 'info')}")
+        print(f" Link totali: {self.colorize(str(stats['total_links']), 'info')}")
+        print(f" Domini unici: {self.colorize(str(stats['unique_domains']), 'info')}")
 
         if stats["total_files"] > 0:
             avg_links = stats["total_links"] / stats["total_files"]
             print(
-                f"📈 Media link per file: {self.colorize(f'{avg_links:.1f}', 'info')}"
+                f" Media link per file: {self.colorize(f'{avg_links:.1f}', 'info')}"
             )
         print()
 
     def print_help(self):
         """Stampa l'aiuto per l'utente"""
         print()
-        print(self.colorize("❓ Aiuto - dokkument", "header"))
+        print(self.colorize(" Aiuto - dokkument", "header"))
         print()
         print(self.colorize("Formato file .dokk:", "info"))
         print('  "Descrizione del link" -> "https://esempio.com"')
         print('  "Documentazione API" -> "https://api.example.com/docs"')
         print()
         print(self.colorize("Comandi disponibili:", "info"))
-        print("  • Numero (1-N): Apre il link corrispondente")
-        print("  • a: Apre tutti i link contemporaneamente")
-        print("  • l: Mostra solo la lista senza aprire nulla")
-        print("  • r: Ricarica e riscansiona i file .dokk")
-        print("  • s: Mostra statistiche sui link trovati")
-        print("  • h: Mostra questo aiuto")
-        print("  • q: Esce dall'applicazione")
+        print("   Numero (1-N): Apre il link corrispondente")
+        print("   a: Apre tutti i link contemporaneamente")
+        print("   l: Mostra solo la lista senza aprire nulla")
+        print("   r: Ricarica e riscansiona i file .dokk")
+        print("   s: Mostra statistiche sui link trovati")
+        print("   h: Mostra questo aiuto")
+        print("   q: Esce dall'applicazione")
         print()
         print(self.colorize("Note:", "warning"))
-        print("  • I link dello stesso file hanno lo stesso colore")
-        print("  • Su terminali compatibili i link sono cliccabili")
-        print("  • L'applicazione cerca file .dokk ricorsivamente")
+        print("   I link dello stesso file hanno lo stesso colore")
+        print("   Su terminali compatibili i link sono cliccabili")
+        print("   L'applicazione cerca file .dokk ricorsivamente")
         print()
 
     def confirm_action(self, message: str, default: bool = True) -> bool:
@@ -316,6 +316,6 @@ class CLIDisplay:
         """Stampa messaggio di addio"""
         print()
         print(
-            self.colorize("👋 Arrivederci! Grazie per aver usato dokkument", "success")
+            self.colorize(" Arrivederci! Grazie per aver usato dokkument", "success")
         )
         print()

@@ -240,7 +240,7 @@ class TestCLIDisplay:
     
     @patch('builtins.input', return_value='s')
     def test_confirm_action_yes(self, mock_input):
-        """Test conferma azione - sì"""
+        """Test conferma azione - si"""
         result = self.cli_display.confirm_action("Continuare?")
         assert result is True
     

@@ -52,7 +52,7 @@ class BaseParser(ABC):
 
     @abstractmethod
     def can_handle(self, file_path: Path) -> bool:
-        """Determina se questo parser può gestire il file specificato."""
+        """Determina se questo parser puo gestire il file specificato."""
         pass
 
 
@@ -76,14 +76,14 @@ class StandardDokkParser(BaseParser):
             List[DokkEntry]: Lista delle entry trovate
 
         Raises:
-            ParseError: Se il file non può essere parsato o contiene errori
+            ParseError: Se il file non puo essere parsato o contiene errori
             FileNotFoundError: Se il file non esiste
         """
         if not file_path.exists():
             raise FileNotFoundError(f"File non trovato: {file_path}")
 
         if not file_path.is_file():
-            raise ParseError(f"Il path specificato non è un file: {file_path}")
+            raise ParseError(f"Il path specificato non e un file: {file_path}")
 
         entries = []
 
@@ -136,7 +136,7 @@ class DokkParserFactory:
 
     def register_parser(self, parser: BaseParser):
         """Registra un nuovo parser personalizzato"""
-        self._parsers.insert(0, parser)  # I parser personalizzati hanno priorità
+        self._parsers.insert(0, parser)  # I parser personalizzati hanno priorita
 
     def create_parser(self, file_path: Path) -> Optional[BaseParser]:
         """
@@ -146,7 +146,7 @@ class DokkParserFactory:
             file_path: Path del file da parsare
 
         Returns:
-            BaseParser: Parser appropriato o None se nessun parser può gestire il file
+            BaseParser: Parser appropriato o None se nessun parser puo gestire il file
         """
         for parser in self._parsers:
             if parser.can_handle(file_path):
@@ -164,7 +164,7 @@ class DokkParserFactory:
             List[DokkEntry]: Lista delle entry trovate
 
         Raises:
-            ParseError: Se il file non può essere parsato
+            ParseError: Se il file non puo essere parsato
         """
         parser = self.create_parser(file_path)
         if parser is None:
@@ -197,7 +197,7 @@ class DokkFileScanner:
 
         if not root_path.is_dir():
             raise NotADirectoryError(
-                f"Il path specificato non è una directory: {root_path}"
+                f"Il path specificato non e una directory: {root_path}"
             )
 
         results = {}

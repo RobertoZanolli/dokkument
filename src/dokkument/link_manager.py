@@ -87,7 +87,7 @@ class LinkManager:
             index: Indice 1-based della entry
 
         Returns:
-            DokkEntry o None se l'indice non è valido
+            DokkEntry o None se l'indice non  valido
         """
         if 1 <= index <= len(self._entries):
             return self._entries[index - 1]
