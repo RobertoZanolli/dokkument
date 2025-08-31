@@ -7,12 +7,12 @@ name = "dokkument"
 version = "1.0.0"
 description = "Gestore CLI per documentazione aziendale tramite file .dokk"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
-    {name = "Dokkument Team", email = "dev@dokkument.com"}
+    {name = "Roberto Zanolli", email = "roberto.zanolli@example.com"}
 ]
 maintainers = [
-    {name = "Dokkument Team", email = "dev@dokkument.com"}
+    {name = "Roberto Zanolli", email = "roberto.zanolli@example.com"}
 ]
 keywords = [
     "cli", "documentation", "links", "enterprise", "tool", "productivity"
@@ -79,15 +79,14 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/dokkument/dokkument"
-Documentation = "https://dokkument.readthedocs.io/"
-Repository = "https://github.com/dokkument/dokkument.git"
-"Bug Tracker" = "https://github.com/dokkument/dokkument/issues"
-Changelog = "https://github.com/dokkument/dokkument/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/RobertoZanolli/dokkument"
+Documentation = "https://github.com/RobertoZanolli/dokkument#readme"
+Repository = "https://github.com/RobertoZanolli/dokkument.git"
+"Bug Tracker" = "https://github.com/RobertoZanolli/dokkument/issues"
+Changelog = "https://github.com/RobertoZanolli/dokkument/blob/main/CHANGELOG.md"
 
-# Entry point per il comando dokkget
+# Entry point per il comando dokkument
 [project.scripts]
-dokkget = "dokkument.main:main"
 dokkument = "dokkument.main:main"
 
 [tool.setuptools]

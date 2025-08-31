@@ -1,5 +1,9 @@
+LICENSE
+MANIFEST.in
 README.md
+example.dokk
 pyproject.toml
+requirements.txt
 src/dokkument/__init__.py
 src/dokkument/browser_opener.py
 src/dokkument/cli_display.py
@@ -15,6 +19,7 @@ src/dokkument.egg-info/dependency_links.txt
 src/dokkument.egg-info/entry_points.txt
 src/dokkument.egg-info/requires.txt
 src/dokkument.egg-info/top_level.txt
+tests/__init__.py
 tests/test_cli_display.py
 tests/test_link_manager.py
 tests/test_parser.py
