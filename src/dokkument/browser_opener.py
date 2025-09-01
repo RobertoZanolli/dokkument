@@ -1,11 +1,10 @@
 """
-BrowserOpener - Gestisce l'apertura degli URL nel browser
-Supporta Windows, Linux e macOS con gestione errori appropriata
+BrowserOpener - Manages opening URLs in the default browser
+Supports Windows, Linux, and macOS with appropriate error handling
 """
 
 import webbrowser
 import subprocess
-import sys
 import shutil
 from pathlib import Path
 from typing import Optional, List
@@ -14,27 +13,27 @@ import platform
 
 
 class BrowserOpener:
-    """Gestisce l'apertura degli URL nel browser predefinito del sistema"""
+    """Manages opening URLs in the default system browser"""
 
     def __init__(self):
         self.platform = platform.system().lower()
         self._preferred_browsers = self._get_system_browsers()
 
     def _get_system_browsers(self) -> List[str]:
-        """Restituisce una lista di browser disponibili per il sistema corrente"""
+        """Returns a list of available browsers for the current system"""
         browsers = []
 
         if self.platform == "windows":
-            # Windows - controlla i browser comuni
+            # Windows - check common browsers
             browsers = ["firefox", "chrome", "msedge", "iexplore"]
         elif self.platform == "darwin":  # macOS
-            # macOS - controlla browser comuni
+            # macOS - check common browsers
             browsers = ["safari", "firefox", "chrome", "opera"]
-        else:  # Linux e altri Unix
-            # Linux - controlla browser comuni
+        else:  # Linux and other Unix
+            # Linux - check common browsers
             browsers = ["firefox", "google-chrome", "chromium-browser", "opera"]
 
-        # Filtra solo i browser effettivamente disponibili
+        # Filter only actually available browsers
         available_browsers = []
         for browser in browsers:
             if shutil.which(browser) or self._browser_exists(browser):
@@ -43,23 +42,23 @@ class BrowserOpener:
         return available_browsers
 
     def _browser_exists(self, browser_name: str) -> bool:
-        """Controlla se un browser specifico esiste nel sistema"""
+        """Checks if a specific browser exists on the system"""
         try:
             if self.platform == "darwin":
-                # Su macOS controlla nelle Applications
+                # On macOS check in Applications
                 app_paths = [
                     f"/Applications/{browser_name.title()}.app",
-                    f"/Applications/Google Chrome.app"
+                    "/Applications/Google Chrome.app"
                     if browser_name == "chrome"
                     else None,
-                    f"/Applications/Microsoft Edge.app"
+                    "/Applications/Microsoft Edge.app"
                     if browser_name == "msedge"
                     else None,
                 ]
                 return any(Path(path).exists() for path in app_paths if path)
 
             elif self.platform == "windows":
-                # Su Windows controlla i registri comuni o path noti
+                # On Windows check common registry or known paths
                 common_paths = [
                     r"C:\Program Files\Google\Chrome\Application\chrome.exe"
                     if browser_name == "chrome"
@@ -74,27 +73,26 @@ class BrowserOpener:
                 return any(Path(path).exists() for path in common_paths if path)
 
             else:
-                # Su Linux usa which
+                # On Linux use which
                 return shutil.which(browser_name) is not None
 
         except Exception:
             return False
 
-        return False
 
     def open_url(self, url: str, browser_name: Optional[str] = None) -> bool:
         """
-        Apre un URL nel browser specificato o in quello predefinito
+        Opens a URL in the specified or default browser
 
         Args:
-            url: URL da aprire
-            browser_name: Nome specifico del browser (opzionale)
+            url: URL to open
+            browser_name: Specific browser name (optional)
 
         Returns:
-            bool: True se l'apertura ha avuto successo, False altrimenti
+            bool: True if the opening was successful, False otherwise
         """
         if not self._is_valid_url(url):
-            print(f"Errore: URL non valido: {url}")
+            print(f"Error: Invalid URL: {url}")
             return False
 
         try:
@@ -104,11 +102,11 @@ class BrowserOpener:
                 return self._open_with_default_browser(url)
 
         except Exception as e:
-            print(f"Errore nell'apertura dell'URL {url}: {e}")
+            print(f"Error opening URL {url}: {e}")
             return False
 
     def _is_valid_url(self, url: str) -> bool:
-        """Valida se l'URL e ben formato"""
+        """Checks if the URL is well-formed"""
         try:
             result = urlparse(url)
             return all([result.scheme, result.netloc]) and result.scheme in [
@@ -119,34 +117,34 @@ class BrowserOpener:
             return False
 
     def _open_with_default_browser(self, url: str) -> bool:
-        """Apre l'URL con il browser predefinito del sistema"""
+        """Opens the URL with the system's default browser"""
         try:
-            # Primo tentativo: usa webbrowser (funziona nella maggior parte dei casi)
+            # First attempt: use webbrowser (works in most cases)
             webbrowser.open(url)
             return True
 
         except Exception as e1:
-            print(f"Errore con webbrowser.open: {e1}")
+            print(f"Error with webbrowser.open: {e1}")
 
-            # Secondo tentativo: usa comandi specifici del sistema
+            # Second attempt: use system-specific commands
             try:
                 if self.platform == "windows":
                     subprocess.run(["start", url], shell=True, check=True)
                 elif self.platform == "darwin":
                     subprocess.run(["open", url], check=True)
-                else:  # Linux e altri Unix
+                else:  # Linux and other Unix
                     subprocess.run(["xdg-open", url], check=True)
 
                 return True
 
             except Exception as e2:
-                print(f"Errore con comando di sistema: {e2}")
+                print(f"Error with system command: {e2}")
                 return False
 
     def _open_with_specific_browser(self, url: str, browser_name: str) -> bool:
-        """Apre l'URL con un browser specifico"""
+        """Opens the URL with a specific browser"""
         try:
-            # Primo tentativo: usa webbrowser con il browser specificato
+            # First attempt: use webbrowser with the specified browser
             try:
                 browser = webbrowser.get(browser_name)
                 browser.open(url)
@@ -154,7 +152,7 @@ class BrowserOpener:
             except webbrowser.Error:
                 pass
 
-            # Secondo tentativo: usa comandi diretti
+            # Second attempt: use direct commands
             if self.platform == "windows":
                 if browser_name.lower() in ["chrome", "google-chrome"]:
                     subprocess.run(
@@ -190,13 +188,13 @@ class BrowserOpener:
                     return False
 
             else:  # Linux
-                # Su Linux, prova ad usare il nome del browser direttamente
+                # On Linux, try using the browser name directly
                 subprocess.run([browser_name, url], check=True)
 
             return True
 
         except Exception as e:
-            print(f"Errore nell'apertura con browser specifico {browser_name}: {e}")
+            print(f"Error opening with specific browser {browser_name}: {e}")
             return False
 
     def open_multiple_urls(
@@ -206,15 +204,15 @@ class BrowserOpener:
         delay_seconds: float = 0.5,
     ) -> List[bool]:
         """
-        Apre multipli URL
+        Opens multiple URLs
 
         Args:
-            urls: Lista di URL da aprire
-            browser_name: Nome specifico del browser (opzionale)
-            delay_seconds: Ritardo tra le aperture per evitare problemi
+            urls: List of URLs to open
+            browser_name: Specific browser name (optional)
+            delay_seconds: Delay between openings to avoid issues
 
         Returns:
-            List[bool]: Lista di risultati per ogni URL
+            List[bool]: List of results for each URL
         """
         import time
 
@@ -227,28 +225,28 @@ class BrowserOpener:
             results.append(result)
 
             if result:
-                print(f" Aperto: {url}")
+                print(f"✔ Opened: {url}")
             else:
-                print(f" Fallito: {url}")
+                print(f"✘ Failed: {url}")
 
         return results
 
     def get_available_browsers(self) -> List[str]:
-        """Restituisce la lista di browser disponibili nel sistema"""
+        """Returns the list of available browsers on the system"""
         return self._preferred_browsers.copy()
 
     def test_browser_availability(self) -> dict:
         """
-        Testa la disponibilita di browser comuni nel sistema
+        Tests the availability of common browsers on the system
 
         Returns:
-            dict: Dizionario con browser come chiave e disponibilita come valore
+            dict: Dictionary with browsers as keys and availability as values
         """
         common_browsers = {
-            "default": "Browser predefinito del sistema",
+            "default": "Default system browser",
             "firefox": "Mozilla Firefox",
             "chrome": "Google Chrome",
-            "safari": "Safari (solo macOS)",
+            "safari": "Safari (only macOS)",
             "msedge": "Microsoft Edge",
             "opera": "Opera",
         }
@@ -257,42 +255,42 @@ class BrowserOpener:
 
         for browser_key, browser_name in common_browsers.items():
             if browser_key == "default":
-                # Testa il browser predefinito
+                # Test the default browser
                 test_result = self._test_default_browser()
                 results[browser_name] = test_result
             else:
-                # Testa browser specifici
+                # Test specific browsers
                 if browser_key == "safari" and self.platform != "darwin":
-                    results[browser_name] = False  # Safari solo su macOS
+                    results[browser_name] = False  # Safari only on macOS
                 else:
                     results[browser_name] = browser_key in self._preferred_browsers
 
         return results
 
     def _test_default_browser(self) -> bool:
-        """Testa se il browser predefinito e disponibile"""
+        """Tests if the default browser is available"""
         try:
-            # Test semplice senza aprire effettivamente nulla
+            # Simple test without actually opening anything
             webbrowser.get()
             return True
         except Exception:
             return False
 
     def print_browser_info(self):
-        """Stampa informazioni sui browser disponibili"""
-        print(f"Sistema operativo: {platform.system()} {platform.release()}")
-        print(f"Browser disponibili:")
+        """Prints information about available browsers"""
+        print(f"Operating System: {platform.system()} {platform.release()}")
+        print(f"Available browsers:")
 
         availability = self.test_browser_availability()
         for browser, available in availability.items():
-            status = " Disponibile" if available else " Non disponibile"
+            status = "✔ Available" if available else "✘ Not available"
             print(f"  {browser}: {status}")
 
         if self._preferred_browsers:
             print(
-                f"\nBrowser preferiti rilevati: {', '.join(self._preferred_browsers)}"
+                f"\nPreferred browsers detected: {', '.join(self._preferred_browsers)}"
             )
         else:
             print(
-                "\nNessun browser specifico rilevato, verra usato il predefinito del sistema"
+                "\nNo specific browser detected, the system default will be used"
             )

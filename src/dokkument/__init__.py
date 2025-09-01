@@ -1,24 +1,24 @@
 """
-dokkument - Gestore CLI per documentazione aziendale tramite file .dokk
+dokkument - Documentation helper for .dokk files
 
-Questo pacchetto fornisce strumenti per gestire e accedere rapidamente
-alla documentazione aziendale utilizzando file .dokk che contengono
-collegamenti organizzati.
+This package provides tools to manage and quickly access
+company documentation using .dokk files containing
+organized links.
 
-Componenti principali:
-- DokkFileParser: Parser per file .dokk
-- LinkManager: Gestione dei link e delle collezioni
-- BrowserOpener: Apertura URL nel browser
-- CLIDisplay: Interfaccia utente a riga di comando
-- ConfigManager: Gestione configurazione
-- Commands: Sistema di comandi con pattern Command
+Main components:
+- DokkFileParser: Parser for .dokk files
+- LinkManager: Management of links and collections
+- BrowserOpener: Opens URLs in the browser
+- CLIDisplay: Command-line interface
+- ConfigManager: Configuration management
+- Commands: Command system with Command pattern
 """
 
 __version__ = "1.0.0"
 __author__ = "Dokkument Team"
-__description__ = "Gestore CLI per documentazione aziendale tramite file .dokk"
+__description__ = "CLI manager for company documentation using .dokk files"
 
-# Import principali per facilitare l'uso del modulo
+# Main imports for easier module usage
 from .parser import DokkEntry, DokkParserFactory, DokkFileScanner, ParseError
 
 from .link_manager import LinkManager
@@ -28,9 +28,10 @@ from .config_manager import ConfigManager, get_config
 from .commands import CommandInvoker
 from .main import DokkumentApp, main
 
-# Export dei simboli pubblici
+
+
 __all__ = [
-    # Classi principali
+    # Main classes
     "DokkumentApp",
     "LinkManager",
     "BrowserOpener",
@@ -42,10 +43,10 @@ __all__ = [
     "DokkParserFactory",
     "DokkFileScanner",
     "ParseError",
-    # Funzioni utility
+    # Utility functions
     "get_config",
     "main",
-    # Metadati
+    # Metadata
     "__version__",
     "__author__",
     "__description__",
