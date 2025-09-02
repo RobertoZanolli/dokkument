@@ -1,6 +1,6 @@
 """
-ConfigManager - Gestisce configurazioni e preferenze dell'applicazione
-Implementa il pattern Singleton per la configurazione globale
+ConfigManager - Manages application configurations and preferences
+Implements the Singleton pattern for global configuration
 """
 
 import json
@@ -11,7 +11,7 @@ import threading
 
 
 class ConfigManager:
-    """Singleton per la gestione della configurazione dell'applicazione"""
+    """Singleton for managing application configuration"""
 
     _instance: Optional["ConfigManager"] = None
     _lock = threading.Lock()
@@ -24,7 +24,7 @@ class ConfigManager:
         return cls._instance
 
     def __init__(self):
-        # Evita la reinizializzazione se l'istanza esiste gi
+        # Avoid reinitialization if the instance exists
         if hasattr(self, "_initialized"):
             return
 
@@ -35,9 +35,8 @@ class ConfigManager:
         self._find_and_load_config_file()
 
     def _load_default_config(self):
-        """Carica la configurazione predefinita"""
+        """Load the default configuration"""
         self._config = {
-            # Impostazioni di scansione
             "scanning": {
                 "recursive": True,
                 "max_depth": 10,
@@ -50,7 +49,6 @@ class ConfigManager:
                 ],
                 "file_patterns": ["*.dokk"],
             },
-            # Impostazioni di visualizzazione
             "display": {
                 "enable_colors": True,
                 "enable_hyperlinks": True,
@@ -59,19 +57,16 @@ class ConfigManager:
                 "show_file_names": True,
                 "confirm_open_all": True,
             },
-            # Impostazioni browser
             "browser": {
-                "preferred_browser": None,  # None = browser predefinito del sistema
+                "preferred_browser": None,                
                 "open_delay_seconds": 0.5,
                 "max_concurrent_opens": 10,
             },
-            # Impostazioni di sicurezza
             "security": {
                 "validate_urls": True,
                 "allowed_schemes": ["http", "https"],
                 "warn_on_suspicious_urls": True,
             },
-            # Impostazioni avanzate
             "advanced": {
                 "cache_scan_results": False,
                 "auto_reload_on_change": False,
@@ -81,24 +76,21 @@ class ConfigManager:
         }
 
     def _find_and_load_config_file(self):
-        """Trova e carica il file di configurazione dall'utente"""
+        """Find and load the user's configuration file"""
         possible_locations = [
-            # Directory corrente
             Path.cwd() / ".dokkument.json",
             Path.cwd() / "dokkument.json",
-            # Directory home dell'utente
             Path.home() / ".dokkument.json",
             Path.home() / ".config" / "dokkument" / "config.json",
-            # Directory di configurazione specifiche del sistema
         ]
 
-        # Su Windows, aggiungi AppData
+        # On Windows, add AppData
         if os.name == "nt":
             appdata = os.environ.get("APPDATA")
             if appdata:
                 possible_locations.append(Path(appdata) / "dokkument" / "config.json")
 
-        # Su Unix-like, aggiungi XDG_CONFIG_HOME
+        # On Unix-like, add XDG_CONFIG_HOME
         else:
             xdg_config = os.environ.get("XDG_CONFIG_HOME")
             if xdg_config:
@@ -114,20 +106,20 @@ class ConfigManager:
                     break
                 except Exception as e:
                     print(
-                        f"Attenzione: Errore nel caricamento della configurazione da {config_path}: {e}"
+                        f"Warning: Error loading configuration from {config_path}: {e}"
                     )
                     continue
 
     def _load_config_from_file(self, config_path: Path):
-        """Carica la configurazione da un file JSON"""
+        """Load configuration from a JSON file"""
         with open(config_path, "r", encoding="utf-8") as f:
             user_config = json.load(f)
 
-        # Merge ricorsivo della configurazione utente con quella predefinita
+        # Recursive merge of user configuration with default
         self._merge_config(self._config, user_config)
 
     def _merge_config(self, default: Dict, user: Dict):
-        """Merge ricorsivo di due dizionari di configurazione"""
+        """Recursive merge of two configuration dictionaries"""
         for key, value in user.items():
             if (
                 key in default
@@ -140,14 +132,14 @@ class ConfigManager:
 
     def get(self, key_path: str, default: Any = None) -> Any:
         """
-        Ottiene un valore di configurazione usando la notazione a punti
+        Get a configuration value using dot notation
 
         Args:
-            key_path: Percorso della chiave (es. 'display.enable_colors')
-            default: Valore predefinito se la chiave non esiste
+            key_path: Key path (e.g. 'display.enable_colors')
+            default: Default value if key doesn't exist
 
         Returns:
-            Il valore della configurazione o il default
+            The configuration value or the default
         """
         keys = key_path.split(".")
         current = self._config
@@ -161,43 +153,43 @@ class ConfigManager:
 
     def set(self, key_path: str, value: Any):
         """
-        Imposta un valore di configurazione usando la notazione a punti
+        Set a configuration value using dot notation
 
         Args:
-            key_path: Percorso della chiave (es. 'display.enable_colors')
-            value: Valore da impostare
+            key_path: Key path (e.g. 'display.enable_colors')
+            value: Value to set
         """
         keys = key_path.split(".")
         current = self._config
 
-        # Naviga fino al penultimo livello
+        # Navigate to the penultimate level
         for key in keys[:-1]:
             if key not in current:
                 current[key] = {}
             current = current[key]
 
-        # Imposta il valore finale
+        # Set the final value
         current[keys[-1]] = value
 
     def save_config(self, config_path: Path = None) -> bool:
         """
-        Salva la configurazione corrente su file
+        Save the current configuration to file
 
         Args:
-            config_path: Percorso del file (opzionale, usa quello corrente se non specificato)
+            config_path: File path (optional, uses current if not specified)
 
         Returns:
-            bool: True se il salvataggio ha avuto successo
+            bool: True if save was successful
         """
         if config_path is None:
             if self._config_file is None:
-                # Se non c' un file di configurazione esistente, crea uno nella home
+                # If there is no existing configuration file, create one in home
                 config_path = Path.home() / ".dokkument.json"
             else:
                 config_path = self._config_file
 
         try:
-            # Crea la directory se non esiste
+            # Create the directory if it doesn't exist
             config_path.parent.mkdir(parents=True, exist_ok=True)
 
             with open(config_path, "w", encoding="utf-8") as f:
@@ -207,123 +199,123 @@ class ConfigManager:
             return True
 
         except Exception as e:
-            print(f"Errore nel salvataggio della configurazione: {e}")
+            print(f"Error saving configuration: {e}")
             return False
 
     def reset_to_defaults(self):
-        """Ripristina la configurazione ai valori predefiniti"""
+        """Reset configuration to default values"""
         self._load_default_config()
 
     def get_config_file_path(self) -> Optional[Path]:
-        """Restituisce il percorso del file di configurazione corrente"""
+        """Return the path of the current configuration file"""
         return self._config_file
 
     def get_all_config(self) -> Dict[str, Any]:
-        """Restituisce una copia di tutta la configurazione"""
+        """Return a copy of all configuration"""
         import copy
 
         return copy.deepcopy(self._config)
 
     def update_config(self, new_config: Dict[str, Any]):
         """
-        Aggiorna la configurazione con un nuovo dizionario
+        Update configuration with a new dictionary
 
         Args:
-            new_config: Nuovo dizionario di configurazione
+            new_config: New configuration dictionary
         """
         self._merge_config(self._config, new_config)
 
     def validate_config(self) -> List[str]:
         """
-        Valida la configurazione corrente
+        Validate the current configuration
 
         Returns:
-            List[str]: Lista di errori di validazione (vuota se tutto OK)
+            List[str]: List of validation errors (empty if all OK)
         """
         errors = []
 
         try:
-            # Valida le impostazioni di scansione
+            # Validate scanning settings
             if not isinstance(self.get("scanning.recursive"), bool):
-                errors.append("scanning.recursive deve essere un booleano")
+                errors.append("scanning.recursive must be a boolean")
 
             if (
                 not isinstance(self.get("scanning.max_depth"), int)
                 or self.get("scanning.max_depth") < 1
             ):
-                errors.append("scanning.max_depth deve essere un intero positivo")
+                errors.append("scanning.max_depth must be a positive integer")
 
-            # Valida le impostazioni di visualizzazione
+            # Validate display settings
             if not isinstance(self.get("display.enable_colors"), bool):
-                errors.append("display.enable_colors deve essere un booleano")
+                errors.append("display.enable_colors must be a boolean")
 
-            # Valida le impostazioni browser
+            # Validate browser settings
             browser = self.get("browser.preferred_browser")
             if browser is not None and not isinstance(browser, str):
                 errors.append(
-                    "browser.preferred_browser deve essere None o una stringa"
+                    "browser.preferred_browser must be None or a string"
                 )
 
-            # Valida gli schemi URL permessi
+            # Validate allowed URL schemes
             allowed_schemes = self.get("security.allowed_schemes", [])
             if not isinstance(allowed_schemes, list):
-                errors.append("security.allowed_schemes deve essere una lista")
+                errors.append("security.allowed_schemes must be a list")
             elif not all(isinstance(scheme, str) for scheme in allowed_schemes):
                 errors.append(
-                    "Tutti gli elementi in security.allowed_schemes devono essere stringhe"
+                    "All elements in security.allowed_schemes must be strings"
                 )
 
         except Exception as e:
-            errors.append(f"Errore generale nella validazione: {e}")
+            errors.append(f"General error in validation: {e}")
 
         return errors
 
     def print_config_info(self):
-        """Stampa informazioni sulla configurazione corrente"""
-        print(" Informazioni Configurazione dokkument")
+        """Print information about the current configuration"""
+        print(" Configuration Information dokkument")
         print("=" * 50)
 
         if self._config_file:
-            print(f" File configurazione: {self._config_file}")
+            print(f" Configuration file: {self._config_file}")
         else:
-            print(" File configurazione: Nessuno (usando configurazione predefinita)")
+            print(" Configuration file: None (using default configuration)")
 
-        print(f"= Scansione ricorsiva: {self.get('scanning.recursive')}")
-        print(f" Colori abilitati: {self.get('display.enable_colors')}")
-        print(f"= Link cliccabili: {self.get('display.enable_hyperlinks')}")
+        print(f"= Recursive scanning: {self.get('scanning.recursive')}")
+        print(f" Colors enabled: {self.get('display.enable_colors')}")
+        print(f"= Clickable links: {self.get('display.enable_hyperlinks')}")
         print(
-            f"< Browser preferito: {self.get('browser.preferred_browser') or 'Predefinito del sistema'}"
+            f"< Preferred browser: {self.get('browser.preferred_browser') or 'System default'}"
         )
-        print(f"= Validazione URL: {self.get('security.validate_urls')}")
-        print(f"= Modalit debug: {self.get('advanced.debug_mode')}")
+        print(f"= URL validation: {self.get('security.validate_urls')}")
+        print(f"= Debug mode: {self.get('advanced.debug_mode')}")
 
-        # Validazione
+        # Validation
         errors = self.validate_config()
         if errors:
-            print("\n  Errori di configurazione:")
+            print("\n Configuration errors:")
             for error in errors:
                 print(f"    {error}")
         else:
-            print("\n Configurazione valida")
+            print("\n Configuration is valid")
 
     def export_config_template(self, output_path: Path = None) -> bool:
         """
-        Esporta un template di configurazione commentato
+        Export a commented configuration template
 
         Args:
-            output_path: Percorso del file di output (default: dokkument-config-template.json)
+            output_path: Output file path (default: dokkument-config-template.json)
 
         Returns:
-            bool: True se l'esportazione ha avuto successo
+            bool: True if export was successful
         """
         if output_path is None:
             output_path = Path.cwd() / "dokkument-config-template.json"
 
         template = {
-            "_comment": "Template di configurazione per dokkument - Rimuovi questo commento per usarlo",
-            "_instructions": "Copia questo file come .dokkument.json nella tua directory home o nel progetto",
+            "_comment": "Configuration template for dokkument - Remove this comment to use it",
+            "_instructions": "Copy this file as .dokkument.json in your home directory or project",
             "scanning": {
-                "_comment": "Impostazioni per la scansione dei file .dokk",
+                "_comment": "Settings for scanning .dokk files",
                 "recursive": True,
                 "max_depth": 10,
                 "excluded_dirs": [
@@ -336,7 +328,7 @@ class ConfigManager:
                 "file_patterns": ["*.dokk"],
             },
             "display": {
-                "_comment": "Impostazioni di visualizzazione dell'interfaccia",
+                "_comment": "Interface display settings",
                 "enable_colors": True,
                 "enable_hyperlinks": True,
                 "group_by_file": True,
@@ -345,19 +337,19 @@ class ConfigManager:
                 "confirm_open_all": True,
             },
             "browser": {
-                "_comment": "Impostazioni browser - preferred_browser: null, 'firefox', 'chrome', ecc.",
+                "_comment": "Browser settings - preferred_browser: null, 'firefox', 'chrome', etc.",
                 "preferred_browser": None,
                 "open_delay_seconds": 0.5,
                 "max_concurrent_opens": 10,
             },
             "security": {
-                "_comment": "Impostazioni di sicurezza per la validazione URL",
+                "_comment": "Security settings for URL validation",
                 "validate_urls": True,
                 "allowed_schemes": ["http", "https"],
                 "warn_on_suspicious_urls": True,
             },
             "advanced": {
-                "_comment": "Impostazioni avanzate - modificare solo se si sa cosa si fa",
+                "_comment": "Advanced settings - modify only if you know what you're doing",
                 "cache_scan_results": False,
                 "auto_reload_on_change": False,
                 "debug_mode": False,
@@ -370,11 +362,11 @@ class ConfigManager:
                 json.dump(template, f, indent=2, ensure_ascii=False)
             return True
         except Exception as e:
-            print(f"Errore nell'esportazione del template: {e}")
+            print(f"Error exporting template: {e}")
             return False
 
 
-# Funzione di convenienza per ottenere l'istanza singleton
+# Convenience function to get the singleton instance
 def get_config() -> ConfigManager:
-    """Restituisce l'istanza singleton del ConfigManager"""
+    """Return the singleton instance of ConfigManager"""
     return ConfigManager()

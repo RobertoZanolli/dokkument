@@ -5,14 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "dokkument"
 version = "1.0.0"
-description = "Gestore CLI per documentazione aziendale tramite file .dokk"
+description = "CLI Manager for corporate documentation via .dokk files"
 readme = "README.md"
 license = "MIT"
 authors = [
-    {name = "Roberto Zanolli", email = "roberto.zanolli@example.com"}
+    {name = "Roberto Zanolli", email = "roberto.zanolli.2003@gmail.com"}
 ]
 maintainers = [
-    {name = "Roberto Zanolli", email = "roberto.zanolli@example.com"}
+    {name = "Roberto Zanolli", email = "roberto.zanolli.2003@gmail.com"}
 ]
 keywords = [
     "cli", "documentation", "links", "enterprise", "tool", "productivity"
@@ -39,20 +39,20 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-    # Core dependencies - utilizzando solo librerie standard Python
-    # Il progetto è progettato per non richiedere dipendenze esterne obbligatorie
+    # Core dependencies - using only Python standard libraries
+    # The project is designed not to require mandatory external dependencies
 ]
 
-# Dipendenze opzionali per funzionalità aggiuntive
+# Optional dependencies for additional features
 [project.optional-dependencies]
-# Dipendenze per una migliore esperienza utente (opzionali)
+# Dependencies for a better user experience (optional)
 enhanced = [
-    "rich>=10.0.0",        # Per output più ricco e colorato
-    "click>=8.0.0",        # Per una CLI più avanzata
-    "colorama>=0.4.4",     # Per il supporto colori su Windows
+    "rich>=10.0.0",        # For richer and colored output
+    "click>=8.0.0",        # For a more advanced CLI
+    "colorama>=0.4.4",     # For color support on Windows
 ]
 
-# Dipendenze per sviluppo
+# Dependencies for development
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
@@ -63,7 +63,7 @@ dev = [
     "pre-commit>=3.0.0",
 ]
 
-# Dipendenze per testing
+# Dependencies for testing
 test = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
@@ -71,7 +71,7 @@ test = [
     "coverage[toml]>=6.0.0",
 ]
 
-# Dipendenze per documentazione
+# Dependencies for documentation
 docs = [
     "sphinx>=5.0.0",
     "sphinx-rtd-theme>=1.0.0",
@@ -85,7 +85,7 @@ Repository = "https://github.com/RobertoZanolli/dokkument.git"
 "Bug Tracker" = "https://github.com/RobertoZanolli/dokkument/issues"
 Changelog = "https://github.com/RobertoZanolli/dokkument/blob/main/CHANGELOG.md"
 
-# Entry point per il comando dokkument
+# Entry point for the dokkument command
 [project.scripts]
 dokkument = "dokkument.main:main"
 
@@ -97,7 +97,7 @@ where = ["src"]
 include = ["dokkument*"]
 exclude = ["tests*"]
 
-# Configurazione per pytest
+# Configuration for pytest
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
@@ -119,7 +119,7 @@ markers = [
     "unit: marks tests as unit tests",
 ]
 
-# Configurazione per coverage
+# Configuration for coverage
 [tool.coverage.run]
 source = ["src/dokkument"]
 branch = true
@@ -145,7 +145,7 @@ exclude_lines = [
 show_missing = true
 precision = 2
 
-# Configurazione per Black (formatter)
+# Configuration for Black (formatter)
 [tool.black]
 line-length = 100
 target-version = ["py38", "py39", "py310", "py311", "py312"]
@@ -164,7 +164,7 @@ extend-exclude = '''
 )/
 '''
 
-# Configurazione per isort (import sorter)
+# Configuration for isort (import sorter)
 [tool.isort]
 profile = "black"
 line_length = 100
@@ -176,7 +176,7 @@ force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
 
-# Configurazione per mypy (type checker)
+# Configuration for mypy (type checker)
 [tool.mypy]
 python_version = "3.8"
 warn_return_any = true

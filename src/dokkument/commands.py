@@ -1,6 +1,6 @@
 """
-Commands - Implementa il pattern Command per gestire i comandi dell'applicazione
-Fornisce un'architettura flessibile per aggiungere nuovi comandi
+Commands - Implements the Command pattern to manage application commands
+Provides a flexible architecture for adding new commands
 """
 
 from abc import ABC, abstractmethod
@@ -15,7 +15,7 @@ from .config_manager import get_config
 
 
 class Command(ABC):
-    """Classe base astratta per tutti i comandi"""
+    """Abstract base class for all commands"""
 
     def __init__(
         self,
@@ -31,26 +31,26 @@ class Command(ABC):
     @abstractmethod
     def execute(self, *args, **kwargs) -> bool:
         """
-        Esegue il comando
+        Executes the command
 
         Returns:
-            bool: True se il comando deve continuare il loop, False per uscire
+            bool: True if the command should continue the loop, False to exit
         """
         pass
 
     @abstractmethod
     def get_description(self) -> str:
-        """Restituisce la descrizione del comando"""
+        """Returns the command description"""
         pass
 
 
 class OpenLinkCommand(Command):
-    """Comando per aprire un singolo link"""
+    """Command to open a single link"""
 
     def execute(self, index: int) -> bool:
         entry = self.link_manager.get_entry_by_index(index)
         if entry is None:
-            self.cli_display.print_error_message(f"Numero non valido: {index}")
+            self.cli_display.print_error_message(f"Invalid number: {index}")
             return True
 
         self.cli_display.print_opening_message(entry)
@@ -59,41 +59,41 @@ class OpenLinkCommand(Command):
         success = self.browser_opener.open_url(entry.url, preferred_browser)
 
         if success:
-            self.cli_display.print_success_message("Link aperto con successo!")
+            self.cli_display.print_success_message("Link opened successfully!")
         else:
-            self.cli_display.print_error_message("Impossibile aprire il link")
+            self.cli_display.print_error_message("Unable to open the link")
 
         return True
 
     def get_description(self) -> str:
-        return "Apre un link specifico nel browser"
+        return "Opens a specific link in the browser"
 
 
 class OpenAllLinksCommand(Command):
-    """Comando per aprire tutti i link"""
+    """Command to open all links"""
 
     def execute(self) -> bool:
         entries = self.link_manager.get_all_entries()
         if not entries:
-            self.cli_display.print_warning_message("Nessun link da aprire")
+            self.cli_display.print_warning_message("No links to open")
             return True
 
-        # Conferma se richiesta dalla configurazione
+        # Confirm if requested by configuration
         if self.config.get("display.confirm_open_all", True):
             self.cli_display.print_opening_all_message(len(entries))
-            if not self.cli_display.confirm_action("Continuare?"):
-                self.cli_display.print_info_message("Operazione annullata")
+            if not self.cli_display.confirm_action("Continue?"):
+                self.cli_display.print_info_message("Operation cancelled")
                 return True
 
-        # Limita il numero di link aperti contemporaneamente
+        # Limit the number of links opened simultaneously
         max_concurrent = self.config.get("browser.max_concurrent_opens", 10)
         if len(entries) > max_concurrent:
             self.cli_display.print_warning_message(
-                f"Troppi link ({len(entries)}), verranno aperti solo i primi {max_concurrent}"
+                f"Too many links ({len(entries)}), only the first {max_concurrent} will be opened"
             )
             entries = entries[:max_concurrent]
 
-        # Apri tutti i link
+        # Open all links
         preferred_browser = self.config.get("browser.preferred_browser")
         delay = self.config.get("browser.open_delay_seconds", 0.5)
 
@@ -102,36 +102,36 @@ class OpenAllLinksCommand(Command):
 
         success_count = sum(1 for result in results if result)
         self.cli_display.print_success_message(
-            f"Aperti {success_count} link su {len(entries)}"
+            f"Opened {success_count} links out of {len(entries)}"
         )
 
         return True
 
     def get_description(self) -> str:
-        return "Apre tutti i link contemporaneamente"
+        return "Opens all links simultaneously"
 
 
 class ListLinksCommand(Command):
-    """Comando per mostrare solo la lista dei link"""
+    """Command to show only the list of links"""
 
     def execute(self) -> bool:
         entries = self.link_manager.get_all_entries()
         show_files = self.config.get("display.group_by_file", True)
 
-        self.cli_display.print_header("Lista Completa dei Link")
+        self.cli_display.print_header("Complete List of Links")
         self.cli_display.print_menu(entries, show_files)
 
         return True
 
     def get_description(self) -> str:
-        return "Mostra la lista completa dei link senza aprirli"
+        return "Shows the complete list of links without opening them"
 
 
 class ReloadCommand(Command):
-    """Comando per ricaricare/riscansionare i file .dokk"""
+    """Command to reload/rescan .dokk files"""
 
     def execute(self) -> bool:
-        self.cli_display.print_info_message("Riscansionando i file .dokk...")
+        self.cli_display.print_info_message("Rescanning .dokk files...")
 
         current_path = Path.cwd()
         recursive = self.config.get("scanning.recursive", True)
@@ -149,47 +149,47 @@ class ReloadCommand(Command):
                 self.cli_display.print_menu_footer(len(entries))
 
         except Exception as e:
-            self.cli_display.print_error_message(f"Errore durante la riscansione: {e}")
+            self.cli_display.print_error_message(f"Error during rescan: {e}")
 
         return True
 
     def get_description(self) -> str:
-        return "Ricarica e riscansiona i file .dokk"
+        return "Reloads and rescans .dokk files"
 
 
 class StatisticsCommand(Command):
-    """Comando per mostrare statistiche sui link"""
+    """Command to show statistics on links"""
 
     def execute(self) -> bool:
         stats = self.link_manager.get_statistics()
         self.cli_display.print_statistics(stats)
 
-        # Informazioni aggiuntive se richieste
+        # Additional information if requested
         if self.config.get("advanced.debug_mode", False):
             entries_by_file = self.link_manager.get_entries_by_file()
-            print("\n" + self.cli_display.colorize("=Dettagli Debug:", "info"))
+            print("\n" + self.cli_display.colorize("=Debug Details:", "info"))
             for file_path, entries in entries_by_file.items():
-                print(f"  = {file_path}: {len(entries)} link")
+                print(f"  = {file_path}: {len(entries)} links")
 
         return True
 
     def get_description(self) -> str:
-        return "Mostra statistiche sui link trovati"
+        return "Shows statistics on found links"
 
 
 class HelpCommand(Command):
-    """Comando per mostrare l'aiuto"""
+    """Command to show help"""
 
     def execute(self) -> bool:
         self.cli_display.print_help()
         return True
 
     def get_description(self) -> str:
-        return "Mostra l'aiuto dell'applicazione"
+        return "Shows application help"
 
 
 class ConfigCommand(Command):
-    """Comando per gestire la configurazione"""
+    """Command to manage configuration"""
 
     def execute(self, action: str = "show") -> bool:
         if action == "show":
@@ -198,57 +198,57 @@ class ConfigCommand(Command):
             template_path = Path.cwd() / "dokkument-config-template.json"
             if self.config.export_config_template(template_path):
                 self.cli_display.print_success_message(
-                    f"Template esportato in: {template_path}"
+                    f"Template exported to: {template_path}"
                 )
             else:
                 self.cli_display.print_error_message(
-                    "Errore nell'esportazione del template"
+                    "Error exporting template"
                 )
         elif action == "validate":
             errors = self.config.validate_config()
             if errors:
                 self.cli_display.print_error_message(
-                    "Errori di configurazione trovati:"
+                    "Configuration errors found:"
                 )
                 for error in errors:
                     print(f"  - {error}")
             else:
-                self.cli_display.print_success_message("Configurazione valida")
+                self.cli_display.print_success_message("Configuration is valid")
 
         return True
 
     def get_description(self) -> str:
-        return "Gestisce la configurazione dell'applicazione"
+        return "Manages application configuration"
 
 
 class ValidateLinksCommand(Command):
-    """Comando per validare tutti i link"""
+    """Command to validate all links"""
 
     def execute(self) -> bool:
-        self.cli_display.print_info_message("Validando tutti i link...")
+        self.cli_display.print_info_message("Validating all links...")
 
         invalid_links = self.link_manager.validate_all_links()
 
         if invalid_links:
             self.cli_display.print_warning_message(
-                f"Trovati {len(invalid_links)} link non validi:"
+                f"Found {len(invalid_links)} invalid links:"
             )
             for entry, error in invalid_links:
                 print(f"  L {entry.description}: {error}")
                 print(f"     = File: {entry.file_path}")
-                print(f"     = URL: {entry.url}")
+                print(f"     = URL: {entry.url}")
                 print()
         else:
-            self.cli_display.print_success_message("Tutti i link sono validi!")
+            self.cli_display.print_success_message("All links are valid!")
 
         return True
 
     def get_description(self) -> str:
-        return "Valida la correttezza di tutti i link"
+        return "Validates the correctness of all links"
 
 
 class ExportCommand(Command):
-    """Comando per esportare i link in vari formati"""
+    """Command to export links in various formats"""
 
     def execute(
         self, format_type: str = "text", output_file: Optional[str] = None
@@ -261,60 +261,60 @@ class ExportCommand(Command):
                 with open(output_path, "w", encoding="utf-8") as f:
                     f.write(content)
                 self.cli_display.print_success_message(
-                    f"Link esportati in: {output_path}"
+                    f"Links exported to: {output_path}"
                 )
             else:
                 print(content)
 
         except ValueError as e:
-            self.cli_display.print_error_message(f"Formato non supportato: {e}")
+            self.cli_display.print_error_message(f"Unsupported format: {e}")
         except Exception as e:
-            self.cli_display.print_error_message(f"Errore durante l'esportazione: {e}")
+            self.cli_display.print_error_message(f"Error during export: {e}")
 
         return True
 
     def get_description(self) -> str:
-        return "Esporta i link in vari formati (text, markdown, html, json)"
+        return "Exports links in various formats (text, markdown, html, json)"
 
 
 class SearchCommand(Command):
-    """Comando per cercare link per descrizione"""
+    """Command to search links by description"""
 
     def execute(self, search_term: str) -> bool:
         if not search_term.strip():
-            self.cli_display.print_warning_message("Termine di ricerca vuoto")
+            self.cli_display.print_warning_message("Empty search term")
             return True
 
         matching_entries = self.link_manager.filter_entries(search_term)
 
         if not matching_entries:
             self.cli_display.print_warning_message(
-                f"Nessun link trovato per: '{search_term}'"
+                f"No links found for: '{search_term}'"
             )
         else:
-            self.cli_display.print_header(f"Risultati ricerca: '{search_term}'")
+            self.cli_display.print_header(f"Search results: '{search_term}'")
             show_files = self.config.get("display.show_file_names", True)
             self.cli_display.print_menu(matching_entries, show_files)
 
         return True
 
     def get_description(self) -> str:
-        return "Cerca link per termine nella descrizione"
+        return "Searches links by term in description"
 
 
 class QuitCommand(Command):
-    """Comando per uscire dall'applicazione"""
+    """Command to exit the application"""
 
     def execute(self) -> bool:
         self.cli_display.print_farewell()
-        return False  # Interrompe il loop principale
+        return False  # Interrupts the main loop
 
     def get_description(self) -> str:
-        return "Esce dall'applicazione"
+        return "Exits the application"
 
 
 class CommandInvoker:
-    """Invoker per il pattern Command - gestisce l'esecuzione dei comandi"""
+    """Invoker for the Command pattern - manages command execution"""
 
     def __init__(
         self,
@@ -326,7 +326,7 @@ class CommandInvoker:
         self.browser_opener = browser_opener
         self.cli_display = cli_display
 
-        # Registra tutti i comandi disponibili
+        # Register all available commands
         self.commands: Dict[str, Command] = {
             "open_link": OpenLinkCommand(link_manager, browser_opener, cli_display),
             "open_all": OpenAllLinksCommand(link_manager, browser_opener, cli_display),
@@ -343,14 +343,14 @@ class CommandInvoker:
 
     def execute_command(self, command_name: str, *args, **kwargs) -> bool:
         """
-        Esegue un comando specifico
+        Executes a specific command
 
         Args:
-            command_name: Nome del comando da eseguire
-            *args, **kwargs: Argomenti da passare al comando
+            command_name: Name of the command to execute
+            *args, **kwargs: Arguments to pass to the command
 
         Returns:
-            bool: True per continuare, False per uscire
+            bool: True to continue, False to exit
         """
         command = self.commands.get(command_name)
         if command:
@@ -358,51 +358,51 @@ class CommandInvoker:
                 return command.execute(*args, **kwargs)  # type: ignore
             except Exception as e:
                 self.cli_display.print_error_message(
-                    f"Errore nell'esecuzione del comando: {e}"
+                    f"Error executing command: {e}"
                 )
                 return True
         else:
             self.cli_display.print_error_message(
-                f"Comando non riconosciuto: {command_name}"
+                f"Unrecognized command: {command_name}"
             )
             return True
 
     def get_available_commands(self) -> Dict[str, str]:
-        """Restituisce un dizionario di comandi disponibili con le loro descrizioni"""
+        """Returns a dictionary of available commands with their descriptions"""
         return {name: cmd.get_description() for name, cmd in self.commands.items()}
 
     def register_command(self, name: str, command: Command):
-        """Registra un nuovo comando personalizzato"""
+        """Registers a new custom command"""
         self.commands[name] = command
 
     def parse_and_execute_user_input(self, user_input: str, total_entries: int) -> bool:
         """
-        Parsa l'input dell'utente ed esegue il comando appropriato
+        Parses user input and executes the appropriate command
 
         Args:
-            user_input: Input dell'utente
-            total_entries: Numero totale di entry disponibili
+            user_input: User input
+            total_entries: Total number of available entries
 
         Returns:
-            bool: True per continuare, False per uscire
+            bool: True to continue, False to exit
         """
         user_input = user_input.strip().lower()
 
         if not user_input:
             return True
 
-        # Gestisci numeri (apertura link specifico)
+        # Handle numbers (opening specific link)
         if user_input.isdigit():
             index = int(user_input)
             if 1 <= index <= total_entries:
                 return self.execute_command("open_link", index)  # type: ignore
             else:
                 self.cli_display.print_error_message(
-                    f"Numero non valido. Inserisci un numero tra 1 e {total_entries}"
+                    f"Invalid number. Enter a number between 1 and {total_entries}"
                 )
                 return True
 
-        # Gestisci comandi singoli
+        # Handle single commands
         command_map = {
             "a": "open_all",
             "l": "list",
@@ -414,7 +414,7 @@ class CommandInvoker:
             "c": "config",
         }
 
-        # Gestisci comandi con argomenti
+        # Handle commands with arguments
         parts = user_input.split()
         if len(parts) > 1:
             cmd = parts[0]
@@ -431,14 +431,14 @@ class CommandInvoker:
                 action = args[0] if args else "show"
                 return self.execute_command("config", action)
 
-        # Gestisci comandi singoli
+        # Handle single commands
         command = command_map.get(user_input)
         if command:
             return self.execute_command(command)
 
-        # Comando non riconosciuto
+        # Unrecognized command
         self.cli_display.print_error_message(
-            f"Comando non riconosciuto: '{user_input}'"
+            f"Unrecognized command: '{user_input}'"
         )
-        self.cli_display.print_info_message("Digita 'h' per vedere l'aiuto")
+        self.cli_display.print_info_message("Type 'h' to see help")
         return True

@@ -15,7 +15,7 @@ Main components:
 """
 
 __version__ = "1.0.0"
-__author__ = "Dokkument Team"
+__author__ = "Roberto Zanolli"
 __description__ = "CLI manager for company documentation using .dokk files"
 
 # Main imports for easier module usage

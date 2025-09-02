@@ -1,22 +1,22 @@
 """
-DokkFileParser - Parser per file .dokk con pattern Factory
-Gestisce la lettura e interpretazione dei file .dokk per il progetto dokkument
+DokkFileParser - Parser for .dokk with Factory pattern
+Manages reading and interpreting .dokk files for the dokkument project
 """
 
 import re
 from pathlib import Path
-from typing import List, Tuple, Optional, Dict, Any
+from typing import List, Optional, Dict, Any
 from abc import ABC, abstractmethod
 
 
 class ParseError(Exception):
-    """Eccezione sollevata quando si verifica un errore di parsing"""
+    """Exception raised when a parsing error occurs"""
 
     pass
 
 
 class DokkEntry:
-    """Rappresenta una singola entry del file .dokk"""
+    """Represents a single entry in the .dokk file"""
 
     def __init__(self, description: str, url: str, file_path: Path):
         self.description = description.strip()
@@ -25,14 +25,14 @@ class DokkEntry:
         self._validate()
 
     def _validate(self):
-        """Valida l'entry per assicurarsi che sia corretta"""
+        """Validates the entry to ensure it is correct"""
         if not self.description:
-            raise ParseError(f"Descrizione vuota in {self.file_path}")
+            raise ParseError(f"Empty description in {self.file_path}")
         if not self.url:
-            raise ParseError(f"URL vuoto per '{self.description}' in {self.file_path}")
+            raise ParseError(f"Empty URL for '{self.description}' in {self.file_path}")
         if not self.url.startswith(("http://", "https://")):
             raise ParseError(
-                f"URL non valido '{self.url}' per '{self.description}' in {self.file_path}"
+                f"Invalid URL '{self.url}' for '{self.description}' in {self.file_path}"
             )
 
     def __str__(self):
@@ -43,47 +43,47 @@ class DokkEntry:
 
 
 class BaseParser(ABC):
-    """Classe base astratta per i parser di file .dokk"""
+    """Abstract base class for .dokk file parsers"""
 
     @abstractmethod
     def parse(self, file_path: Path) -> List[DokkEntry]:
-        """Parsa un file .dokk e restituisce una lista di DokkEntry"""
+        """Parses a .dokk file and returns a list of DokkEntry"""
         pass
 
     @abstractmethod
     def can_handle(self, file_path: Path) -> bool:
-        """Determina se questo parser puo gestire il file specificato."""
+        """Determines if this parser can handle the specified file."""
         pass
 
 
 class StandardDokkParser(BaseParser):
-    """Parser standard per file .dokk nel formato: "Descrizione" -> "URL" """
+    """Standard parser for .dokk files in the format: "Description" -> "URL" """
 
     PATTERN = re.compile(r'"([^"]+)"\s*->\s*"([^"]+)"')
 
     def can_handle(self, file_path: Path) -> bool:
-        """Controlla se il file ha estensione .dokk"""
+        """Checks if the file has a .dokk extension"""
         return file_path.suffix.lower() == ".dokk"
 
     def parse(self, file_path: Path) -> List[DokkEntry]:
         """
-        Parsa un file .dokk nel formato standard
+        Parses a .dokk file in the standard format
 
         Args:
-            file_path: Path del file da parsare
+            file_path: Path of the file to parse
 
         Returns:
-            List[DokkEntry]: Lista delle entry trovate
+            List[DokkEntry]: List of found entries
 
         Raises:
-            ParseError: Se il file non puo essere parsato o contiene errori
-            FileNotFoundError: Se il file non esiste
+            ParseError: If the file cannot be parsed or contains errors
+            FileNotFoundError: If the file does not exist
         """
         if not file_path.exists():
-            raise FileNotFoundError(f"File non trovato: {file_path}")
+            raise FileNotFoundError(f"File not found: {file_path}")
 
         if not file_path.is_file():
-            raise ParseError(f"Il path specificato non e un file: {file_path}")
+            raise ParseError(f"The specified path is not a file: {file_path}")
 
         entries = []
 
@@ -95,16 +95,16 @@ class StandardDokkParser(BaseParser):
                 with open(file_path, "r", encoding="latin-1") as f:
                     content = f.read()
             except Exception as e:
-                raise ParseError(f"Impossibile leggere il file {file_path}: {e}")
+                raise ParseError(f"Unable to read file {file_path}: {e}")
         except Exception as e:
-            raise ParseError(f"Errore nella lettura del file {file_path}: {e}")
+            raise ParseError(f"Error reading file {file_path}: {e}")
 
         line_number = 0
         for line in content.splitlines():
             line_number += 1
             line = line.strip()
 
-            # Ignora righe vuote e commenti
+            # Ignore empty lines and comments
             if not line or line.startswith("#"):
                 continue
 
@@ -116,18 +116,18 @@ class StandardDokkParser(BaseParser):
                     entries.append(entry)
                 except ParseError as e:
                     raise ParseError(
-                        f"Errore alla riga {line_number} di {file_path}: {e}"
+                        f"Error at line {line_number} in {file_path}: {e}"
                     )
             else:
                 raise ParseError(
-                    f"Formato non valido alla riga {line_number} di {file_path}: {line}"
+                    f"Invalid format at line {line_number} in {file_path}: {line}"
                 )
 
         return entries
 
 
 class DokkParserFactory:
-    """Factory per creare parser appropriati per i file .dokk"""
+    """Factory to create appropriate parsers for .dokk files"""
 
     def __init__(self):
         self._parsers: List[BaseParser] = [
@@ -135,18 +135,18 @@ class DokkParserFactory:
         ]
 
     def register_parser(self, parser: BaseParser):
-        """Registra un nuovo parser personalizzato"""
-        self._parsers.insert(0, parser)  # I parser personalizzati hanno priorita
+        """Registers a new custom parser"""
+        self._parsers.insert(0, parser)  # Custom parsers have priority
 
     def create_parser(self, file_path: Path) -> Optional[BaseParser]:
         """
-        Crea il parser appropriato per il file specificato
+        Creates the appropriate parser for the specified file
 
         Args:
-            file_path: Path del file da parsare
+            file_path: Path of the file to parse
 
         Returns:
-            BaseParser: Parser appropriato o None se nessun parser puo gestire il file
+            BaseParser: Appropriate parser or None if no parser can handle the file
         """
         for parser in self._parsers:
             if parser.can_handle(file_path):
@@ -155,26 +155,26 @@ class DokkParserFactory:
 
     def parse_file(self, file_path: Path) -> List[DokkEntry]:
         """
-        Parsa un file utilizzando il parser appropriato
+        Parses a file using the appropriate parser
 
         Args:
-            file_path: Path del file da parsare
+            file_path: Path of the file to parse
 
         Returns:
-            List[DokkEntry]: Lista delle entry trovate
+            List[DokkEntry]: List of found entries
 
         Raises:
-            ParseError: Se il file non puo essere parsato
+            ParseError: If the file cannot be parsed
         """
         parser = self.create_parser(file_path)
         if parser is None:
-            raise ParseError(f"Nessun parser disponibile per il file: {file_path}")
+            raise ParseError(f"No parser available for file: {file_path}")
 
         return parser.parse(file_path)
 
 
 class DokkFileScanner:
-    """Scanner per trovare tutti i file .dokk in una directory e sottodirectory"""
+    """Scanner to find all .dokk files in a directory and subdirectories"""
 
     def __init__(self, parser_factory: DokkParserFactory = None):
         self.parser_factory = parser_factory or DokkParserFactory()
@@ -183,21 +183,21 @@ class DokkFileScanner:
         self, root_path: Path, recursive: bool = True
     ) -> Dict[Path, List[DokkEntry]]:
         """
-        Scansiona una directory per trovare tutti i file .dokk
+        Scans a directory to find all .dokk files
 
         Args:
-            root_path: Directory radice da scansionare
-            recursive: Se True, scansiona anche le sottodirectory
+            root_path: Root directory to scan
+            recursive: If True, also scans subdirectories
 
         Returns:
-            Dict[Path, List[DokkEntry]]: Dizionario con path del file come chiave e lista di entry come valore
+            Dict[Path, List[DokkEntry]]: Dictionary with file path as key and list of entries as value
         """
         if not root_path.exists():
-            raise FileNotFoundError(f"Directory non trovata: {root_path}")
+            raise FileNotFoundError(f"Directory not found: {root_path}")
 
         if not root_path.is_dir():
             raise NotADirectoryError(
-                f"Il path specificato non e una directory: {root_path}"
+                f"The specified path is not a directory: {root_path}"
             )
 
         results = {}
@@ -206,11 +206,11 @@ class DokkFileScanner:
         for file_path in root_path.glob(pattern):
             try:
                 entries = self.parser_factory.parse_file(file_path)
-                if entries:  # Solo se ci sono entry valide
+                if entries:  # Only if there are valid entries
                     results[file_path] = entries
             except Exception as e:
-                # Log dell'errore ma continua la scansione
-                print(f"Attenzione: Errore nel parsing di {file_path}: {e}")
+                # Log the error but continue scanning
+                print(f"Warning: Error parsing {file_path}: {e}")
                 continue
 
         return results
@@ -219,14 +219,14 @@ class DokkFileScanner:
         self, root_path: Path, recursive: bool = True
     ) -> List[DokkEntry]:
         """
-        Ottiene tutte le entry da tutti i file .dokk trovati
+        Gets all entries from all found .dokk files
 
         Args:
-            root_path: Directory radice da scansionare
-            recursive: Se True, scansiona anche le sottodirectory
+            root_path: Root directory to scan
+            recursive: If True, also scans subdirectories
 
         Returns:
-            List[DokkEntry]: Lista di tutte le entry trovate
+            List[DokkEntry]: List of all found entries
         """
         file_entries = self.scan_directory(root_path, recursive)
         all_entries = []

@@ -1,6 +1,6 @@
 """
-CLIDisplay - Gestisce la visualizzazione del menu interattivo
-Fornisce un'interfaccia user-friendly con colori e formattazione
+CLIDisplay - Manages the display of the interactive menu
+Provides a user-friendly interface with colors and formatting
 """
 
 import sys
@@ -13,44 +13,44 @@ from .link_manager import LinkManager
 
 
 class CLIDisplay:
-    """Gestisce la visualizzazione dell'interfaccia a riga di comando"""
+    """Manages the command-line interface display"""
 
     def __init__(self, link_manager: LinkManager):
         self.link_manager = link_manager
         self.supports_color = self._check_color_support()
         self.supports_hyperlinks = self._check_hyperlink_support()
 
-        # Codici colore ANSI
+        # ANSI color codes
         self.COLORS = {
-            "header": "\033[1;36m",  # Ciano grassetto
-            "success": "\033[1;32m",  # Verde grassetto
-            "warning": "\033[1;33m",  # Giallo grassetto
-            "error": "\033[1;31m",  # Rosso grassetto
-            "info": "\033[1;34m",  # Blu grassetto
-            "prompt": "\033[1;35m",  # Magenta grassetto
+            "header": "\033[1;36m",  # Bold cyan
+            "success": "\033[1;32m",  # Bold green
+            "warning": "\033[1;33m",  # Bold yellow
+            "error": "\033[1;31m",  # Bold red
+            "info": "\033[1;34m",  # Bold blue
+            "prompt": "\033[1;35m",  # Bold magenta
             "reset": "\033[0m",  # Reset
-            "dim": "\033[2m",  # Testo sfumato
-            "bold": "\033[1m",  # Grassetto
+            "dim": "\033[2m",  # Dim text
+            "bold": "\033[1m",  # Bold
         }
 
-        # Se il terminale non supporta i colori, usa stringhe vuote
+        # If the terminal does not support colors, use empty strings
         if not self.supports_color:
             self.colors = {key: "" for key in self.COLORS}
         else:
             self.colors = self.COLORS
 
     def _check_color_support(self) -> bool:
-        """Verifica se il terminale supporta i colori ANSI"""
-        # Controlla variabili d'ambiente comuni
+        """Checks if the terminal supports ANSI colors"""
+        # Check common environment variables
         term = os.environ.get("TERM", "")
         colorterm = os.environ.get("COLORTERM", "")
 
-        # Su Windows, controlla se stiamo usando un terminale moderno
+        # On Windows, check if we are using a modern terminal
         if sys.platform == "win32":
-            # Windows Terminal, VS Code terminal, ecc. supportano i colori
+            # Windows Terminal, VS Code terminal, etc. support colors
             if any(env in os.environ for env in ["WT_SESSION", "VSCODE_PID"]):
                 return True
-            # Prova ad abilitare il supporto colore su Windows 10+
+            # Try to enable color support on Windows 10+
             try:
                 import ctypes
 
@@ -60,13 +60,13 @@ class CLIDisplay:
             except:
                 pass
 
-        # Su Unix-like, controlla TERM
+        # On Unix-like, check TERM
         color_terms = ["xterm", "xterm-256color", "screen", "tmux", "linux"]
         return any(color_term in term for color_term in color_terms) or bool(colorterm)
 
     def _check_hyperlink_support(self) -> bool:
-        """Verifica se il terminale supporta i link ipertestuali OSC 8"""
-        # Lista di terminali che supportano OSC 8
+        """Checks if the terminal supports OSC 8 hyperlinks"""
+        # List of terminals that support OSC 8
         term = os.environ.get("TERM", "").lower()
         term_program = os.environ.get("TERM_PROGRAM", "").lower()
 
@@ -80,13 +80,13 @@ class CLIDisplay:
         )
 
     def colorize(self, text: str, color_key: str) -> str:
-        """Applica colore al testo se supportato"""
+        """Applies color to text if supported"""
         color = self.colors.get(color_key, "")
         reset = self.colors.get("reset", "")
         return f"{color}{text}{reset}" if color else text
 
     def print_header(self, title: str):
-        """Stampa un'intestazione formattata"""
+        """Prints a formatted header"""
         print()
         print(self.colorize("=" * 60, "header"))
         print(self.colorize(f"  {title.center(56)}", "header"))
@@ -94,53 +94,53 @@ class CLIDisplay:
         print()
 
     def print_scanning_message(self, path: Path):
-        """Stampa messaggio durante la scansione"""
-        print(self.colorize(f" Scansionando directory: {path}", "info"))
+        """Prints message during scanning"""
+        print(self.colorize(f" Scanning directory: {path}", "info"))
         print()
 
     def print_scan_results(self, total_links: int, total_files: int):
-        """Stampa i risultati della scansione"""
+        """Prints the scan results"""
         if total_links == 0:
             print(
                 self.colorize(
-                    " Nessun file .dokk trovato nella directory corrente", "warning"
+                    " No .dokk files found in the current directory", "warning"
                 )
             )
             print(
                 self.colorize(
-                    " Assicurati che ci siano file .dokk nel formato:", "info"
+                    " Make sure there are .dokk files in the format:", "info"
                 )
             )
             print(
                 self.colorize(
-                    '   "Descrizione del link" -> "https://esempio.com"', "dim"
+                    '   "Link description" -> "https://example.com"', "dim"
                 )
             )
             return
 
         print(
             self.colorize(
-                f" Trovati {total_links} link in {total_files} file", "success"
+                f" Found {total_links} links in {total_files} files", "success"
             )
         )
         print()
 
     def print_menu(self, entries: List[DokkEntry], show_files: bool = True):
         """
-        Stampa il menu principale con le opzioni
+        Prints the main menu with options
 
         Args:
-            entries: Lista delle entry da mostrare
-            show_files: Se True, mostra anche i nomi dei file
+            entries: List of entries to show
+            show_files: If True, also shows file names
         """
         if not entries:
-            print(self.colorize("Nessun link disponibile", "warning"))
+            print(self.colorize("No links available", "warning"))
             return
 
-        print(self.colorize(" Link disponibili:", "header"))
+        print(self.colorize(" Available links:", "header"))
         print()
 
-        # Raggruppa per file se richiesto
+        # Group by file if requested
         if show_files:
             entries_by_file = {}
             for entry in entries:
@@ -150,7 +150,7 @@ class CLIDisplay:
 
             index = 1
             for file_path, file_entries in entries_by_file.items():
-                # Nome del file con colore
+                # File name with color
                 file_color = self.link_manager.get_file_color(file_path)
                 print(self.colorize(f" {file_path.name}", "dim"))
 
@@ -167,7 +167,7 @@ class CLIDisplay:
                     index += 1
                 print()
         else:
-            # Menu semplice senza raggruppamento
+            # Simple menu without grouping
             for i, entry in enumerate(entries, 1):
                 description = self.link_manager.get_colored_description(entry)
                 url = self.link_manager.get_colored_url(entry, self.supports_hyperlinks)
@@ -179,113 +179,113 @@ class CLIDisplay:
         print()
 
     def print_menu_footer(self, total_entries: int):
-        """Stampa il footer del menu con le opzioni"""
+        """Prints the menu footer with options"""
         print(self.colorize(" " * 60, "dim"))
-        print(self.colorize("Opzioni disponibili:", "info"))
+        print(self.colorize("Available options:", "info"))
         print(
-            f"  {self.colorize('1-' + str(total_entries), 'prompt')}: Apri il link corrispondente"
+            f"  {self.colorize('1-' + str(total_entries), 'prompt')}: Open the corresponding link"
         )
-        print(f"  {self.colorize('a', 'prompt')}: Apri tutti i link")
-        print(f"  {self.colorize('l', 'prompt')}: Mostra solo la lista (senza aprire)")
-        print(f"  {self.colorize('r', 'prompt')}: Ricarica/Riscansiona")
-        print(f"  {self.colorize('s', 'prompt')}: Statistiche")
-        print(f"  {self.colorize('h', 'prompt')}: Aiuto")
-        print(f"  {self.colorize('q', 'prompt')}: Esci")
+        print(f"  {self.colorize('a', 'prompt')}: Open all links")
+        print(f"  {self.colorize('l', 'prompt')}: Show only the list (without opening)")
+        print(f"  {self.colorize('r', 'prompt')}: Reload/Rescan")
+        print(f"  {self.colorize('s', 'prompt')}: Statistics")
+        print(f"  {self.colorize('h', 'prompt')}: Help")
+        print(f"  {self.colorize('q', 'prompt')}: Exit")
         print()
 
-    def get_user_input(self, prompt: str = "Seleziona un'opzione") -> str:
-        """Ottiene input dall'utente con prompt colorato"""
+    def get_user_input(self, prompt: str = "Select an option") -> str:
+        """Gets input from the user with colored prompt"""
         colored_prompt = self.colorize(f"{prompt}: ", "prompt")
         try:
             return input(colored_prompt).strip().lower()
         except (KeyboardInterrupt, EOFError):
             print()
-            return "q"  # Esce in caso di Ctrl+C o Ctrl+D
+            return "q"  # Exits on Ctrl+C or Ctrl+D
 
     def print_opening_message(self, entry: DokkEntry):
-        """Stampa messaggio quando si apre un link"""
-        print(self.colorize(f" Apertura di: {entry.description}", "info"))
+        """Prints message when opening a link"""
+        print(self.colorize(f" Opening: {entry.description}", "info"))
         print(self.colorize(f" URL: {entry.url}", "dim"))
 
     def print_opening_all_message(self, count: int):
-        """Stampa messaggio quando si aprono tutti i link"""
-        print(self.colorize(f" Apertura di tutti i {count} link...", "warning"))
+        """Prints message when opening all links"""
+        print(self.colorize(f" Opening all {count} links...", "warning"))
         print(
             self.colorize(
-                "  Questo potrebbe aprire molte schede del browser!", "warning"
+                "  This might open many browser tabs!", "warning"
             )
         )
 
     def print_success_message(self, message: str):
-        """Stampa un messaggio di successo"""
+        """Prints a success message"""
         print(self.colorize(f" {message}", "success"))
 
     def print_error_message(self, message: str):
-        """Stampa un messaggio di errore"""
+        """Prints an error message"""
         print(self.colorize(f" {message}", "error"))
 
     def print_warning_message(self, message: str):
-        """Stampa un messaggio di avviso"""
+        """Prints a warning message"""
         print(self.colorize(f"  {message}", "warning"))
 
     def print_info_message(self, message: str):
-        """Stampa un messaggio informativo"""
+        """Prints an info message"""
         print(self.colorize(f"  {message}", "info"))
 
     def print_statistics(self, stats: Dict[str, int]):
-        """Stampa le statistiche dei link"""
+        """Prints link statistics"""
         print()
-        print(self.colorize(" Statistiche", "header"))
+        print(self.colorize(" Statistics", "header"))
         print(self.colorize("-" * 30, "dim"))
         print(
-            f" File .dokk trovati: {self.colorize(str(stats['total_files']), 'info')}"
+            f" .dokk files found: {self.colorize(str(stats['total_files']), 'info')}"
         )
-        print(f" Link totali: {self.colorize(str(stats['total_links']), 'info')}")
-        print(f" Domini unici: {self.colorize(str(stats['unique_domains']), 'info')}")
+        print(f" Total links: {self.colorize(str(stats['total_links']), 'info')}")
+        print(f" Unique domains: {self.colorize(str(stats['unique_domains']), 'info')}")
 
         if stats["total_files"] > 0:
             avg_links = stats["total_links"] / stats["total_files"]
             print(
-                f" Media link per file: {self.colorize(f'{avg_links:.1f}', 'info')}"
+                f" Average links per file: {self.colorize(f'{avg_links:.1f}', 'info')}"
             )
         print()
 
     def print_help(self):
-        """Stampa l'aiuto per l'utente"""
+        """Prints help for the user"""
         print()
-        print(self.colorize(" Aiuto - dokkument", "header"))
+        print(self.colorize(" Help - dokkument", "header"))
         print()
-        print(self.colorize("Formato file .dokk:", "info"))
-        print('  "Descrizione del link" -> "https://esempio.com"')
-        print('  "Documentazione API" -> "https://api.example.com/docs"')
+        print(self.colorize("File .dokk format:", "info"))
+        print('  "Link description" -> "https://example.com"')
+        print('  "API Documentation" -> "https://api.example.com/docs"')
         print()
-        print(self.colorize("Comandi disponibili:", "info"))
-        print("   Numero (1-N): Apre il link corrispondente")
-        print("   a: Apre tutti i link contemporaneamente")
-        print("   l: Mostra solo la lista senza aprire nulla")
-        print("   r: Ricarica e riscansiona i file .dokk")
-        print("   s: Mostra statistiche sui link trovati")
-        print("   h: Mostra questo aiuto")
-        print("   q: Esce dall'applicazione")
+        print(self.colorize("Available commands:", "info"))
+        print("   Number (1-N): Opens the corresponding link")
+        print("   a: Opens all links simultaneously")
+        print("   l: Shows only the list without opening anything")
+        print("   r: Reloads and rescans .dokk files")
+        print("   s: Shows statistics on found links")
+        print("   h: Shows this help")
+        print("   q: Exits the application")
         print()
-        print(self.colorize("Note:", "warning"))
-        print("   I link dello stesso file hanno lo stesso colore")
-        print("   Su terminali compatibili i link sono cliccabili")
-        print("   L'applicazione cerca file .dokk ricorsivamente")
+        print(self.colorize("Notes:", "warning"))
+        print("   Links from the same file have the same color")
+        print("   On compatible terminals, links are clickable")
+        print("   The application searches for .dokk files recursively")
         print()
 
     def confirm_action(self, message: str, default: bool = True) -> bool:
         """
-        Chiede conferma all'utente
+        Asks for user confirmation
 
         Args:
-            message: Messaggio da mostrare
-            default: Valore predefinito se l'utente preme solo Invio
+            message: Message to show
+            default: Default value if user presses Enter only
 
         Returns:
-            bool: True se l'utente conferma
+            bool: True if user confirms
         """
-        default_text = "S/n" if default else "s/N"
+        default_text = "Y/n" if default else "y/N"
         response = (
             input(self.colorize(f"{message} ({default_text}): ", "prompt"))
             .strip()
@@ -294,7 +294,7 @@ class CLIDisplay:
 
         if response == "":
             return default
-        elif response in ["s", "si", "y", "yes"]:
+        elif response in ["y", "yes", "s", "si"]:
             return True
         elif response in ["n", "no"]:
             return False
@@ -302,20 +302,20 @@ class CLIDisplay:
             return default
 
     def clear_screen(self):
-        """Pulisce lo schermo se possibile"""
+        """Clears the screen if possible"""
         try:
             if sys.platform == "win32":
                 os.system("cls")
             else:
                 os.system("clear")
         except:
-            # Se non riesce a pulire, stampa alcune righe vuote
+            # If it can't clear, print some empty lines
             print("\n" * 3)
 
     def print_farewell(self):
-        """Stampa messaggio di addio"""
+        """Prints farewell message"""
         print()
         print(
-            self.colorize(" Arrivederci! Grazie per aver usato dokkument", "success")
+            self.colorize(" Goodbye! Thank you for using dokkument", "success")
         )
         print()

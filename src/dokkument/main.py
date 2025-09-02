@@ -1,6 +1,6 @@
 """
-Main - Entry point principale dell'applicazione dokkument
-Gestisce argparse e orchestrazione dei componenti principali
+Main - Entry point for the dokkument application
+Manages argparse and orchestration of main components
 """
 
 import argparse
@@ -16,7 +16,7 @@ from .config_manager import get_config
 
 
 class DokkumentApp:
-    """Classe principale dell'applicazione dokkument"""
+    """Main class for the dokkument application"""
 
     def __init__(self):
         self.config = get_config()
@@ -30,31 +30,31 @@ class DokkumentApp:
 
     def run_interactive_mode(self, scan_path: Path = None):
         """
-        Esegue l'applicazione in modalit interattiva
+        Runs the application in interactive mode
 
         Args:
-            scan_path: Directory da scansionare (default: directory corrente)
+            scan_path: Directory to scan (default: current directory)
         """
         if scan_path is None:
             scan_path = Path.cwd()
 
-        # Header dell'applicazione
-        self.cli_display.print_header("dokkument - Gestore Documentazione Aziendale")
+        # Application header
+        self.cli_display.print_header("dokkument - Company Documentation Manager")
         self.cli_display.print_scanning_message(scan_path)
 
-        # Scansiona per file .dokk
+        # Scans for .dokk files
         try:
             recursive = self.config.get("scanning.recursive", True)
             total_links = self.link_manager.scan_for_links(scan_path, recursive)
 
-            # Mostra risultati scansione
+            # Shows scan results
             stats = self.link_manager.get_statistics()
             self.cli_display.print_scan_results(total_links, stats["total_files"])
 
             if total_links == 0:
                 return
 
-            # Loop principale interattivo
+            # Main interactive loop
             while True:
                 entries = self.link_manager.get_all_entries()
                 show_files = self.config.get("display.show_file_names", True)
@@ -64,7 +64,7 @@ class DokkumentApp:
 
                 user_input = self.cli_display.get_user_input()
 
-                # Esegui comando
+                # Execute command
                 should_continue = self.command_invoker.parse_and_execute_user_input(
                     user_input, len(entries)
                 )
@@ -72,12 +72,12 @@ class DokkumentApp:
                 if not should_continue:
                     break
 
-                print()  # Riga vuota tra le iterazioni
+                print()  # Empty line between iterations
 
         except KeyboardInterrupt:
             self.cli_display.print_farewell()
         except Exception as e:
-            self.cli_display.print_error_message(f"Errore critico: {e}")
+            self.cli_display.print_error_message(f"Critical error: {e}")
             if self.config.get("advanced.debug_mode", False):
                 import traceback
 
@@ -86,11 +86,11 @@ class DokkumentApp:
 
     def run_list_mode(self, scan_path: Path = None, format_type: str = "text"):
         """
-        Esegue l'applicazione in modalit lista (non interattiva)
+        Runs the application in list mode (non-interactive)
 
         Args:
-            scan_path: Directory da scansionare
-            format_type: Formato di output
+            scan_path: Directory to scan
+            format_type: Output format
         """
         if scan_path is None:
             scan_path = Path.cwd()
@@ -100,15 +100,15 @@ class DokkumentApp:
             total_links = self.link_manager.scan_for_links(scan_path, recursive)
 
             if total_links == 0:
-                print("Nessun file .dokk trovato")
+                print("No .dokk files found")
                 return
 
-            # Output in base al formato richiesto
+            # Output based on requested format
             if format_type in ["json", "markdown", "html"]:
                 content = self.link_manager.export_to_format(format_type)
                 print(content)
             else:
-                # Output testuale semplice
+                # Simple text output
                 entries = self.link_manager.get_all_entries()
                 for i, entry in enumerate(entries, 1):
                     print(f"{i:2d}. {entry.description}")
@@ -124,12 +124,12 @@ class DokkumentApp:
         self, scan_path: Path = None, link_indices: list = None, open_all: bool = False
     ):
         """
-        Esegue l'applicazione in modalit apertura diretta
+        Runs the application in open mode
 
         Args:
-            scan_path: Directory da scansionare
-            link_indices: Lista di indici di link da aprire
-            open_all: Se True, apre tutti i link
+            scan_path: Directory to scan
+            link_indices: List of link indices to open
+            open_all: If True, opens all links
         """
         if scan_path is None:
             scan_path = Path.cwd()
@@ -139,60 +139,60 @@ class DokkumentApp:
             total_links = self.link_manager.scan_for_links(scan_path, recursive)
 
             if total_links == 0:
-                print("Nessun file .dokk trovato")
+                print("No .dokk files found")
                 return
 
             entries = self.link_manager.get_all_entries()
 
             if open_all:
-                # Apri tutti i link
+                # Open all links
                 urls = [entry.url for entry in entries]
                 preferred_browser = self.config.get("browser.preferred_browser")
                 delay = self.config.get("browser.open_delay_seconds", 0.5)
 
-                print(f"Apertura di {len(urls)} link...")
+                print(f"Opening {len(urls)} links...")
                 results = self.browser_opener.open_multiple_urls(
                     urls, preferred_browser, delay
                 )
                 success_count = sum(1 for result in results if result)
-                print(f"Aperti {success_count} link su {len(urls)}")
+                print(f"Opened {success_count} links out of {len(urls)}")
 
             elif link_indices:
-                # Apri link specifici
+                # Open specific links
                 preferred_browser = self.config.get("browser.preferred_browser")
 
                 for index in link_indices:
                     if 1 <= index <= len(entries):
                         entry = entries[index - 1]
-                        print(f"Apertura: {entry.description}")
+                        print(f"Opening: {entry.description}")
                         success = self.browser_opener.open_url(
                             entry.url, preferred_browser
                         )
                         if not success:
-                            print(f"Errore nell'apertura di: {entry.description}")
+                            print(f"Error opening: {entry.description}")
                     else:
-                        print(f"Indice non valido: {index}")
+                        print(f"Invalid index: {index}")
 
         except Exception as e:
-            print(f"Errore: {e}", file=sys.stderr)
+            print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
 
 
 def create_argument_parser() -> argparse.ArgumentParser:
-    """Crea e configura il parser per gli argomenti della riga di comando"""
+    """Creates and configures the parser for command line arguments"""
 
     parser = argparse.ArgumentParser(
         prog="dokkument",
-        description="Gestore CLI per documentazione aziendale tramite file .dokk",
+        description="CLI manager for corporate documentation via .dokk files",
         epilog="""
-Esempi di uso:
-  dokkument                        # Modalita interattiva
-  dokkument --list                 # Lista tutti i link
-  dokkument --list --format json  # Lista in formato JSON
-  dokkument --open-all             # Apre tutti i link
-  dokkument --open 1 3 5           # Apre i link 1, 3 e 5
-  dokkument --path /docs           # Scansiona directory specifica
-  dokkument --config show          # Mostra configurazione
+Usage examples:
+  dokkument                        # Interactive mode
+  dokkument --list                 # List all links
+  dokkument --list --format json  # List in JSON format
+  dokkument --open-all             # Open all links
+  dokkument --open 1 3 5           # Open links 1, 3, and 5
+  dokkument --path /docs           # Scan specific directory
+  dokkument --config show          # Show configuration
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -203,34 +203,34 @@ Esempi di uso:
         "-p",
         type=Path,
         default=None,
-        help="Directory da scansionare per file .dokk (default: directory corrente)",
+        help="Directory to scan for .dokk files (default: current directory)",
     )
 
     parser.add_argument(
         "--recursive",
         "-r",
         action="store_true",
-        help="Scansiona ricorsivamente le sottodirectory",
+        help="Scan subdirectories recursively",
     )
 
     parser.add_argument(
         "--no-recursive",
         action="store_true",
-        help="Non scansionare ricorsivamente (sovrascrive configurazione)",
+        help="Do not scan recursively (overrides configuration)",
     )
 
-    # Modalit operative (mutuamente esclusive)
+    # Operating modes (mutually exclusive)
     mode_group = parser.add_mutually_exclusive_group()
 
     mode_group.add_argument(
         "--list",
         "-l",
         action="store_true",
-        help="Mostra solo la lista dei link senza modalit interattiva",
+        help="Show only the list of links without interactive mode",
     )
 
     mode_group.add_argument(
-        "--open-all", "-a", action="store_true", help="Apre tutti i link trovati e esce"
+        "--open-all", "-a", action="store_true", help="Open all found links and exit"
     )
 
     mode_group.add_argument(
@@ -239,69 +239,69 @@ Esempi di uso:
         nargs="+",
         type=int,
         metavar="INDEX",
-        help="Apre i link con gli indici specificati (es. --open 1 3 5)",
+        help="Open links with specified indices (e.g., --open 1 3 5)",
     )
 
-    # Opzioni per la modalit lista
+    # Options for list mode
     parser.add_argument(
         "--format",
         "-f",
         choices=["text", "json", "markdown", "html"],
         default="text",
-        help="Formato di output per la modalit lista (default: text)",
+        help="Output format for list mode (default: text)",
     )
 
-    # Opzioni di configurazione
+    # Configuration options
     parser.add_argument(
         "--config",
         "-c",
         choices=["show", "export", "validate"],
-        help="Operazioni sulla configurazione",
+        help="Configuration operations",
     )
 
     parser.add_argument(
         "--browser",
         "-b",
         type=str,
-        help="Browser specifico da usare (sovrascrive configurazione)",
+        help="Specific browser to use (overrides configuration)",
     )
 
-    # Opzioni di output
+    # Output options
     parser.add_argument(
-        "--no-color", action="store_true", help="Disabilita i colori nell'output"
+        "--no-color", action="store_true", help="Disable colors in output"
     )
 
     parser.add_argument(
         "--debug",
         action="store_true",
-        help="Abilita la modalit debug con informazioni aggiuntive",
+        help="Enable debug mode with additional information",
     )
 
     parser.add_argument("--version", "-v", action="version", version="dokkument 1.0.0")
 
-    # Opzioni per testing e sviluppo
+    # Options for testing and development
     parser.add_argument(
-        "--validate", action="store_true", help="Valida tutti i link trovati"
+        "--validate", action="store_true", help="Validate all found links"
     )
 
     parser.add_argument(
-        "--stats", action="store_true", help="Mostra solo le statistiche"
+        "--stats", action="store_true", help="Show only statistics"
     )
 
     return parser
 
 
 def main():
-    """Funzione main principale"""
+    """Main function"""
 
-    # Crea parser argomenti
+    # Create argument parser
     arg_parser = create_argument_parser()
     args = arg_parser.parse_args()
 
-    # Crea applicazione
+    # Create application
     app = DokkumentApp()
 
-    # Applica override di configurazione da argomenti
+    # Apply configuration overrides from arguments
     if args.no_color:
         app.config.set("display.enable_colors", False)
 
@@ -316,33 +316,33 @@ def main():
     if args.browser:
         app.config.set("browser.preferred_browser", args.browser)
 
-    # Gestione comandi di configurazione
+    # Configuration command handling
     if args.config:
         app.command_invoker.execute_command("config", args.config)
         return
 
-    # Gestione modalit specifiche
+    # Specific mode handling
     if args.validate:
-        # Scansiona prima
+        # Scan first
         scan_path = args.path or Path.cwd()
         recursive = app.config.get("scanning.recursive", True)
         app.link_manager.scan_for_links(scan_path, recursive)
 
-        # Poi valida
+        # Then validate
         app.command_invoker.execute_command("validate")
         return
 
     if args.stats:
-        # Scansiona prima
+        # Scan first
         scan_path = args.path or Path.cwd()
         recursive = app.config.get("scanning.recursive", True)
         app.link_manager.scan_for_links(scan_path, recursive)
 
-        # Poi mostra statistiche
+        # Then show statistics
         app.command_invoker.execute_command("statistics")
         return
 
-    # Modalit principali
+    # Main modes
     if args.list:
         app.run_list_mode(args.path, args.format)
     elif args.open_all:
@@ -350,7 +350,7 @@ def main():
     elif args.open:
         app.run_open_mode(args.path, link_indices=args.open)
     else:
-        # Modalit interattiva (default)
+        # Interactive mode (default)
         app.run_interactive_mode(args.path)
 
 
