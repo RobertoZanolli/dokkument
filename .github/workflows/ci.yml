@@ -3,6 +3,7 @@ name: CI
 on:
   pull_request:
     branches: [develop]
+  workflow_dispatch: {}  # allow manual runs
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -13,7 +14,8 @@ permissions:
 
 jobs:
   lint:
-    if: github.event.pull_request.draft == false
+
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -41,7 +43,7 @@ jobs:
           pylint -j 0 src/dokkument
 
   test:
-    if: github.event.pull_request.draft == false
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     needs: lint
     timeout-minutes: 20
