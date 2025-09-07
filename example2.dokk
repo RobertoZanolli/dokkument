@@ -1,0 +1,4 @@
+# === Monitoring e DevOps ===2
+"Dashboard Grafana" -> "https://grafana.company.com"
+"Logs Kibana" -> "https://kibana.company.com"
+"CI/CD Jenkins" -> "https://jenkins.company.com"
