@@ -5,6 +5,8 @@ Centralizes the logic for handling links found in .dokk files
 
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
+from urllib.parse import urlparse
+import json
 
 from .parser import DokkEntry, DokkFileScanner, DokkParserFactory
 
@@ -20,7 +22,7 @@ class LinkManager:
         self._file_colors: Dict[Path, str] = {}
 
         # ANSI colors for terminal
-        self.COLORS = [
+        self._colors = [
             "\033[91m",  # Red
             "\033[92m",  # Green
             "\033[93m",  # Yellow
@@ -29,7 +31,7 @@ class LinkManager:
             "\033[96m",  # Cyan
             "\033[97m",  # White
         ]
-        self.RESET_COLOR = "\033[0m"
+        self._reset_color = "\033[0m"
 
     def scan_for_links(self, root_path: Path = None, recursive: bool = True) -> int:
         """
@@ -55,9 +57,9 @@ class LinkManager:
 
             # Assign colors to files
             color_index = 0
-            for file_path in file_entries.keys():
-                self._file_colors[file_path] = self.COLORS[
-                    color_index % len(self.COLORS)
+            for file_path in file_entries:
+                self._file_colors[file_path] = self._colors[
+                    color_index % len(self._colors)
                 ]
                 color_index += 1
 
@@ -68,8 +70,8 @@ class LinkManager:
 
             return len(self._entries)
 
-        except Exception as e:
-            raise RuntimeError(f"Error during scanning: {e}")
+        except Exception as scan_error:
+            raise RuntimeError(f"Error during scanning: {scan_error}") from scan_error
 
     def get_all_entries(self) -> List[DokkEntry]:
         """Returns all loaded entries"""
@@ -108,7 +110,7 @@ class LinkManager:
             str: Description with ANSI color codes
         """
         color = self.get_file_color(entry.file_path)
-        return f"{color}{entry.description}{self.RESET_COLOR}"
+        return f"{color}{entry.description}{self._reset_color}"
 
     def get_colored_url(self, entry: DokkEntry, make_clickable: bool = True) -> str:
         """
@@ -126,9 +128,8 @@ class LinkManager:
         if make_clickable:
             # OSC 8 format for clickable links in compatible terminals
             clickable_url = f"\033]8;;{entry.url}\033\\{entry.url}\033]8;;\033\\"
-            return f"{color}{clickable_url}{self.RESET_COLOR}"
-        else:
-            return f"{color}{entry.url}{self.RESET_COLOR}"
+            return f"{color}{clickable_url}{self._reset_color}"
+        return f"{color}{entry.url}{self._reset_color}"
 
     def filter_entries(self, search_term: str) -> List[DokkEntry]:
         """
@@ -161,12 +162,10 @@ class LinkManager:
         domains = set()
         for entry in self._entries:
             try:
-                from urllib.parse import urlparse
-
                 parsed = urlparse(entry.url)
                 if parsed.netloc:
                     domains.add(parsed.netloc.lower())
-            except:
+            except Exception:  # pylint: disable=broad-except
                 continue
 
         return {
@@ -186,8 +185,6 @@ class LinkManager:
 
         for entry in self._entries:
             try:
-                from urllib.parse import urlparse
-
                 parsed = urlparse(entry.url)
 
                 if not parsed.scheme or parsed.scheme not in ["http", "https"]:
@@ -195,8 +192,8 @@ class LinkManager:
                 elif not parsed.netloc:
                     invalid_links.append((entry, "Missing domain in URL"))
 
-            except Exception as e:
-                invalid_links.append((entry, f"URL parsing error: {e}"))
+            except Exception as parse_error:  # pylint: disable=broad-except
+                invalid_links.append((entry, f"URL parsing error: {parse_error}"))
 
         return invalid_links
 
@@ -212,14 +209,13 @@ class LinkManager:
         """
         if format_type == "text":
             return self._export_to_text()
-        elif format_type == "markdown":
+        if format_type == "markdown":
             return self._export_to_markdown()
-        elif format_type == "html":
+        if format_type == "html":
             return self._export_to_html()
-        elif format_type == "json":
+        if format_type == "json":
             return self._export_to_json()
-        else:
-            raise ValueError(f"Unsupported format: {format_type}")
+        raise ValueError(f"Unsupported format: {format_type}")
 
     def _export_to_text(self) -> str:
         """Exports in plain text format"""
@@ -272,8 +268,6 @@ class LinkManager:
 
     def _export_to_json(self) -> str:
         """Exports in JSON format"""
-        import json
-
         data = {
             "scan_info": {
                 "scan_path": str(self._last_scan_path)

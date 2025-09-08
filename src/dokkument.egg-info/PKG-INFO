@@ -1,10 +1,10 @@
 Metadata-Version: 2.4
 Name: dokkument
 Version: 1.0.0
-Summary: Gestore CLI per documentazione aziendale tramite file .dokk
-Author-email: Roberto Zanolli <roberto.zanolli@example.com>
-Maintainer-email: Roberto Zanolli <roberto.zanolli@example.com>
-License: MIT
+Summary: CLI Manager for corporate documentation via .dokk files
+Author-email: Roberto Zanolli <roberto.zanolli.2003@gmail.com>
+Maintainer-email: Roberto Zanolli <roberto.zanolli.2003@gmail.com>
+License-Expression: MIT
 Project-URL: Homepage, https://github.com/RobertoZanolli/dokkument
 Project-URL: Documentation, https://github.com/RobertoZanolli/dokkument#readme
 Project-URL: Repository, https://github.com/RobertoZanolli/dokkument.git
@@ -15,7 +15,6 @@ Classifier: Development Status :: 5 - Production/Stable
 Classifier: Environment :: Console
 Classifier: Intended Audience :: Developers
 Classifier: Intended Audience :: System Administrators
-Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.8
@@ -39,6 +38,7 @@ Requires-Dist: colorama>=0.4.4; extra == "enhanced"
 Provides-Extra: dev
 Requires-Dist: pytest>=7.0.0; extra == "dev"
 Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
+Requires-Dist: pylint>=2.15.0; extra == "dev"
 Requires-Dist: black>=22.0.0; extra == "dev"
 Requires-Dist: isort>=5.0.0; extra == "dev"
 Requires-Dist: flake8>=5.0.0; extra == "dev"
@@ -57,33 +57,33 @@ Dynamic: license-file
 
 # dokkument
 
-**Gestore CLI per documentazione aziendale tramite file .dokk**
+**CLI Manager for corporate documentation via .dokk files**
 
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Version](https://img.shields.io/badge/version-1.0.0-red)
 
-`dokkument` è un'applicazione a riga di comando che consente di gestire e accedere rapidamente alla documentazione aziendale utilizzando file `.dokk` contenenti link organizzati. Perfetto per team di sviluppo, sysadmin e aziende che necessitano di un accesso rapido a risorse documentali distribuite.
+`dokkument` is a command-line application that allows you to manage and quickly access corporate documentation using `.dokk` files containing organized links. Perfect for development teams, sysadmins, and companies that need quick access to distributed documentation resources.
 
-## 🚀 Caratteristiche
+## 🚀 Features
 
-- **🔍 Scansione automatica** di file `.dokk` nella directory corrente e sottodirectory
-- **🎨 Interfaccia colorata** con supporto per link cliccabili nei terminali compatibili
-- **🌍 Apertura browser** intelligente multipiattaforma (Windows, macOS, Linux)
-- **⚙️ Configurazione flessibile** con file JSON personalizzabili
-- **📤 Esportazione** in multipli formati (testo, Markdown, HTML, JSON)
-- **✅ Validazione URL** per garantire la correttezza dei link
-- **🔧 Zero dipendenze** esterne obbligatorie - usa solo librerie standard Python
+- **🔍 Automatic scanning** of `.dokk` files in the current directory and subdirectories
+- **🎨 Colored interface** with support for clickable links in compatible terminals
+- **🌍 Intelligent browser opening** cross-platform (Windows, macOS, Linux)
+- **⚙️ Flexible configuration** with customizable JSON files
+- **📤 Export** in multiple formats (text, Markdown, HTML, JSON)
+- **✅ URL validation** to ensure link correctness
+- **🔧 Zero external dependencies** - uses only Python standard libraries
 
-## 📦 Installazione
+## 📦 Installation
 
-### Installazione rapida
+### Quick Installation
 
 ```bash
 pip install dokkument
 ```
 
-### Installazione da sorgente
+### Installation from source
 
 ```bash
 git clone https://github.com/your-username/dokkument.git
@@ -91,80 +91,80 @@ cd dokkument
 pip install -e .
 ```
 
-### Installazione con funzionalità avanzate (opzionale)
+### Installation with advanced features (optional)
 
 ```bash
-pip install "dokkument[enhanced]"  # Include rich, click, colorama per UX migliore
+pip install "dokkument[enhanced]"  # Includes rich, click, colorama for better UX
 ```
 
-## 📖 Formato file .dokk
+## 📖 .dokk file format
 
-I file `.dokk` utilizzano un formato semplice e leggibile:
+The `.dokk` files use a simple and readable format:
 
 ```
-# Commenti iniziano con #
-"Descrizione del link" -> "https://link.com"
-"Documentazione API" -> "https://api.example.com/docs"
-"Repository GitLab" -> "https://gitlab.com/company/project"
-"Dashboard Monitoring" -> "https://grafana.example.com"
+# Comments start with #
+"Link description" -> "https://link.com"
+"API Documentation" -> "https://api.example.com/docs"
+"GitLab Repository" -> "https://gitlab.com/company/project"
+"Monitoring Dashboard" -> "https://grafana.example.com"
 ```
 
-### Regole formato:
-- Una riga per ogni entry
-- Formato: `"Descrizione" -> "URL"`
-- Righe vuote e commenti (`#`) sono ignorati
-- Solo URL HTTP/HTTPS sono supportati
+### Format rules:
+- One line per entry
+- Format: `"Description" -> "URL"`
+- Empty lines and comments (`#`) are ignored
+- Only HTTP/HTTPS URLs are supported
 
-## 🚀 Utilizzo
+## 🚀 Usage
 
-### Modalità interattiva (default)
+### Interactive mode (default)
 
 ```bash
 dokkument
 ```
 
-Scansiona la directory corrente per file `.dokk` e presenta un menu interattivo.
+Scans the current directory for `.dokk` files and presents an interactive menu.
 
-### Modalità lista
-
-```bash
-dokkument --list                 # Lista testuale
-dokkument --list --format json   # Output JSON
-dokkument --list --format markdown  # Output Markdown
-```
-
-### Apertura diretta
+### List mode
 
 ```bash
-dokkument --open-all             # Apre tutti i link
-dokkument --open 1 3 5           # Apre i link 1, 3 e 5
+dokkument --list                 # Textual list
+dokkument --list --format json   # JSON output
+dokkument --list --format markdown  # Markdown output
 ```
 
-### Scansione directory specifica
+### Direct opening
 
 ```bash
-dokkument --path /docs           # Scansiona directory specifica
-dokkument --path /docs --no-recursive  # Non ricorsiva
+dokkument --open-all             # Opens all links
+dokkument --open 1 3 5           # Opens links 1, 3, and 5
 ```
 
-### Statistiche e validazione
+### Scan specific directory
 
 ```bash
-dokkument --stats                # Mostra statistiche
-dokkument --validate             # Valida tutti i link
+dokkument --path /docs           # Scan specific directory
+dokkument --path /docs --no-recursive  # Non-recursive
 ```
 
-## ⚙️ Configurazione
+### Statistics and validation
 
-### File di configurazione
+```bash
+dokkument --stats                # Show statistics
+dokkument --validate             # Validate all links
+```
 
-dokkument cerca automaticamente file di configurazione in:
-- `.dokkument.json` (directory corrente)
+## ⚙️ Configuration
+
+### Configuration file
+
+dokkument automatically looks for configuration files in:
+- `.dokkument.json` (current directory)
 - `~/.dokkument.json` (home directory)
 - `~/.config/dokkument/config.json` (Linux/macOS)
 - `%APPDATA%/dokkument/config.json` (Windows)
 
-### Esempio configurazione
+### Configuration example
 
 ```json
 {
@@ -190,34 +190,34 @@ dokkument cerca automaticamente file di configurazione in:
 }
 ```
 
-## 🏗️ Architettura
+## 🏗️ Architecture
 
-dokkument implementa diversi design pattern per garantire codice pulito e manutenibile:
+dokkument implements several design patterns to ensure clean and maintainable code:
 
-- **Factory Pattern** - `DokkParserFactory` per gestire diversi tipi di parser
-- **Command Pattern** - Sistema di comandi modulare ed estensibile
-- **Singleton Pattern** - `ConfigManager` per configurazione globale
-- **Strategy Pattern** - Diversi formati di esportazione
+- **Factory Pattern** - `DokkParserFactory` to handle different types of parsers
+- **Command Pattern** - Modular and extensible command system
+- **Singleton Pattern** - `ConfigManager` for global configuration
+- **Strategy Pattern** - Different export formats
 
-## 🤝 Contributi
+## 🤝 Contributing
 
-I contributi sono benvenuti! Per contribuire:
+Contributions are welcome! To contribute:
 
-1. Fork del repository
-2. Crea branch feature (`git checkout -b feature/nome-feature`)
-3. Commit delle modifiche (`git commit -am 'Aggiungi nome-feature'`)
-4. Push del branch (`git push origin feature/nome-feature`)
-5. Apri una Pull Request
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/your-feature-name`)
+3. Commit your changes (`git commit -am 'Add your-feature-name'`)
+4. Push the branch (`git push origin feature/your-feature-name`)
+5. Open a Pull Request
 
-## 📄 Licenza
+## 📄 License
 
-Distribuito sotto licenza MIT. Vedi `LICENSE` per maggiori informazioni.
+Distributed under the MIT License. See `LICENSE` for more information.
 
-## 💬 Supporto
+## 💬 Support
 
-- **Issues**: [GitHub Issues](https://github.com/your-username/dokkument/issues)
-- **Documentazione**: [docs.dokkument.com](https://docs.dokkument.com)
+- **Issues**: [GitHub Issues](https://github.com/RobertoZanolli/dokkument/issues)
+- **Documentation**: this readme right here :D
 
 ---
 
-**Fatto con ❤️ da sviluppatori per sviluppatori**
+**Made with ❤️ by a developer for developers**

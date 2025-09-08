@@ -7,6 +7,7 @@ import sys
 import os
 from typing import List, Dict
 from pathlib import Path
+import ctypes
 
 from .parser import DokkEntry
 from .link_manager import LinkManager
@@ -20,8 +21,8 @@ class CLIDisplay:
         self.supports_color = self._check_color_support()
         self.supports_hyperlinks = self._check_hyperlink_support()
 
-        # ANSI color codes
-        self.COLORS = {
+        # ANSI color codes (default set)
+        self._default_colors = {
             "header": "\033[1;36m",  # Bold cyan
             "success": "\033[1;32m",  # Bold green
             "warning": "\033[1;33m",  # Bold yellow
@@ -35,9 +36,9 @@ class CLIDisplay:
 
         # If the terminal does not support colors, use empty strings
         if not self.supports_color:
-            self.colors = {key: "" for key in self.COLORS}
+            self.colors = {key: "" for key in self._default_colors}
         else:
-            self.colors = self.COLORS
+            self.colors = self._default_colors
 
     def _check_color_support(self) -> bool:
         """Checks if the terminal supports ANSI colors"""
@@ -52,13 +53,11 @@ class CLIDisplay:
                 return True
             # Try to enable color support on Windows 10+
             try:
-                import ctypes
-
                 kernel32 = ctypes.windll.kernel32
                 kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
                 return True
-            except:
-                pass
+            except Exception:  # pylint: disable=broad-except
+                return False
 
         # On Unix-like, check TERM
         color_terms = ["xterm", "xterm-256color", "screen", "tmux", "linux"]
@@ -151,7 +150,6 @@ class CLIDisplay:
             index = 1
             for file_path, file_entries in entries_by_file.items():
                 # File name with color
-                file_color = self.link_manager.get_file_color(file_path)
                 print(self.colorize(f" {file_path.name}", "dim"))
 
                 for entry in file_entries:
@@ -294,12 +292,11 @@ class CLIDisplay:
 
         if response == "":
             return default
-        elif response in ["y", "yes", "s", "si"]:
+        if response in ["y", "yes", "s", "si"]:
             return True
-        elif response in ["n", "no"]:
+        if response in ["n", "no"]:
             return False
-        else:
-            return default
+        return default
 
     def clear_screen(self):
         """Clears the screen if possible"""
@@ -308,7 +305,7 @@ class CLIDisplay:
                 os.system("cls")
             else:
                 os.system("clear")
-        except:
+        except Exception:  # pylint: disable=broad-except
             # If it can't clear, print some empty lines
             print("\n" * 3)
 
