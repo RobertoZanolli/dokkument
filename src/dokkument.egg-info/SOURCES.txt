@@ -7,7 +7,6 @@ requirements.txt
 src/dokkument/__init__.py
 src/dokkument/browser_opener.py
 src/dokkument/cli_display.py
-src/dokkument/cli_display_old.py
 src/dokkument/commands.py
 src/dokkument/config_manager.py
 src/dokkument/link_manager.py
