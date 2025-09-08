@@ -6,6 +6,7 @@ Manages argparse and orchestration of main components
 import argparse
 import sys
 from pathlib import Path
+import traceback
 
 from .parser import DokkParserFactory
 from .link_manager import LinkManager
@@ -48,8 +49,9 @@ class DokkumentApp:
             total_links = self.link_manager.scan_for_links(scan_path, recursive)
 
             # Shows scan results
-            stats = self.link_manager.get_statistics()
-            self.cli_display.print_scan_results(total_links, stats["total_files"])
+            self.cli_display.print_scan_results(
+                total_links, self.link_manager.get_statistics()["total_files"]
+            )
 
             if total_links == 0:
                 return
@@ -76,11 +78,9 @@ class DokkumentApp:
 
         except KeyboardInterrupt:
             self.cli_display.print_farewell()
-        except Exception as e:
+        except (OSError, RuntimeError, ValueError) as e:
             self.cli_display.print_error_message(f"Critical error: {e}")
             if self.config.get("advanced.debug_mode", False):
-                import traceback
-
                 traceback.print_exc()
             sys.exit(1)
 
@@ -116,8 +116,8 @@ class DokkumentApp:
                     print(f"    = {entry.file_path}")
                     print()
 
-        except Exception as e:
-            print(f"Errore: {e}", file=sys.stderr)
+        except (OSError, RuntimeError, ValueError) as e:
+            print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
 
     def run_open_mode(
@@ -135,47 +135,50 @@ class DokkumentApp:
             scan_path = Path.cwd()
 
         try:
-            recursive = self.config.get("scanning.recursive", True)
-            total_links = self.link_manager.scan_for_links(scan_path, recursive)
-
-            if total_links == 0:
+            entries = self._scan_and_get_entries(scan_path)
+            if not entries:
                 print("No .dokk files found")
                 return
 
-            entries = self.link_manager.get_all_entries()
-
             if open_all:
-                # Open all links
-                urls = [entry.url for entry in entries]
-                preferred_browser = self.config.get("browser.preferred_browser")
-                delay = self.config.get("browser.open_delay_seconds", 0.5)
-
-                print(f"Opening {len(urls)} links...")
-                results = self.browser_opener.open_multiple_urls(
-                    urls, preferred_browser, delay
-                )
-                success_count = sum(1 for result in results if result)
-                print(f"Opened {success_count} links out of {len(urls)}")
-
+                self._open_all_links(entries)
             elif link_indices:
-                # Open specific links
-                preferred_browser = self.config.get("browser.preferred_browser")
+                self._open_specific_links(entries, link_indices)
 
-                for index in link_indices:
-                    if 1 <= index <= len(entries):
-                        entry = entries[index - 1]
-                        print(f"Opening: {entry.description}")
-                        success = self.browser_opener.open_url(
-                            entry.url, preferred_browser
-                        )
-                        if not success:
-                            print(f"Error opening: {entry.description}")
-                    else:
-                        print(f"Invalid index: {index}")
-
-        except Exception as e:
-            print(f"Error: {e}", file=sys.stderr)
+        except (OSError, RuntimeError, ValueError) as open_error:
+            print(f"Error: {open_error}", file=sys.stderr)
             sys.exit(1)
+
+    def _scan_and_get_entries(self, scan_path: Path):
+        """Helper method to scan and return entries"""
+        recursive = self.config.get("scanning.recursive", True)
+        total_links = self.link_manager.scan_for_links(scan_path, recursive)
+        return self.link_manager.get_all_entries() if total_links > 0 else []
+
+    def _open_all_links(self, entries):
+        """Helper method to open all links"""
+        urls = [entry.url for entry in entries]
+        preferred_browser = self.config.get("browser.preferred_browser")
+        delay = self.config.get("browser.open_delay_seconds", 0.5)
+
+        print(f"Opening {len(urls)} links...")
+        results = self.browser_opener.open_multiple_urls(urls, preferred_browser, delay)
+        success_count = sum(1 for result in results if result)
+        print(f"Opened {success_count} links out of {len(urls)}")
+
+    def _open_specific_links(self, entries, link_indices):
+        """Helper method to open specific links by indices"""
+        preferred_browser = self.config.get("browser.preferred_browser")
+
+        for index in link_indices:
+            if 1 <= index <= len(entries):
+                entry = entries[index - 1]
+                print(f"Opening: {entry.description}")
+                success = self.browser_opener.open_url(entry.url, preferred_browser)
+                if not success:
+                    print(f"Error opening: {entry.description}")
+            else:
+                print(f"Invalid index: {index}")
 
 
 def create_argument_parser() -> argparse.ArgumentParser:

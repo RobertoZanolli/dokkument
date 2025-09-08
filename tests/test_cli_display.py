@@ -1,5 +1,5 @@
 """
-Test per il modulo cli_display
+Tests for the cli_display module
 """
 
 import pytest
@@ -13,7 +13,7 @@ from dokkument.parser import DokkEntry
 
 
 class TestCLIDisplay:
-    """Test per la classe CLIDisplay"""
+    """Tests for the CLIDisplay class"""
     
     def setup_method(self):
         """Setup per ogni test"""
@@ -35,7 +35,8 @@ class TestCLIDisplay:
         """Test colorizzazione con supporto colori"""
         # Force color support for testing
         self.cli_display.supports_color = True
-        self.cli_display.COLORS = {'success': '\033[1;32m', 'reset': '\033[0m'}
+        # Use the mapping actually used by colorize
+        self.cli_display.colors = {'success': '\033[1;32m', 'reset': '\033[0m'}
         
         result = self.cli_display.colorize("Test", 'success')
         assert '\033[1;32m' in result
@@ -46,7 +47,7 @@ class TestCLIDisplay:
         """Test colorizzazione senza supporto colori"""
         # Force no color support
         self.cli_display.supports_color = False
-        self.cli_display.COLORS = {key: '' for key in self.cli_display.COLORS}
+        self.cli_display.colors = {key: '' for key in self.cli_display.colors}
         
         result = self.cli_display.colorize("Test", 'success')
         assert result == "Test"
@@ -62,32 +63,30 @@ class TestCLIDisplay:
     
     @patch('sys.stdout', new_callable=StringIO)
     def test_print_scanning_message(self, mock_stdout):
-        """Test messaggio di scansione"""
+        """Test scanning message"""
         test_path = Path("/test/path")
         self.cli_display.print_scanning_message(test_path)
-        
+ 
         output = mock_stdout.getvalue()
         assert str(test_path) in output
-        assert "Scansionando" in output
+        assert "Scanning" in output
     
     @patch('sys.stdout', new_callable=StringIO)
     def test_print_scan_results_with_links(self, mock_stdout):
-        """Test risultati scansione con link trovati"""
+        """Test scan results with found links"""
         self.cli_display.print_scan_results(5, 2)
-        
+ 
         output = mock_stdout.getvalue()
-        assert "5 link" in output
-        assert "2 file" in output
-        assert "Trovati" in output
+        assert "Found 5 links in 2 files" in output
     
     @patch('sys.stdout', new_callable=StringIO)
     def test_print_scan_results_no_links(self, mock_stdout):
-        """Test risultati scansione senza link"""
+        """Test scan results without links"""
         self.cli_display.print_scan_results(0, 0)
-        
+ 
         output = mock_stdout.getvalue()
-        assert "Nessun file .dokk trovato" in output
-        assert "formato:" in output  # Suggerimento formato
+        assert "No .dokk files found" in output
+        assert "format:" in output  # format hint
     
     @patch('sys.stdout', new_callable=StringIO)
     def test_print_menu_with_entries(self, mock_stdout):
@@ -110,31 +109,31 @@ class TestCLIDisplay:
         self.mock_link_manager.get_colored_url.side_effect = lambda entry, _: entry.url
         
         self.cli_display.print_menu(entries, show_files=False)
-        
+ 
         output = mock_stdout.getvalue()
         assert "Test Entry 1" in output
         assert "Test Entry 2" in output
-        assert "[1]" in output
-        assert "[2]" in output
+        assert "[ 1]" in output
+        assert "[ 2]" in output
     
     @patch('sys.stdout', new_callable=StringIO)
     def test_print_menu_empty(self, mock_stdout):
         """Test stampa menu vuoto"""
         self.cli_display.print_menu([])
-        
+ 
         output = mock_stdout.getvalue()
-        assert "Nessun link disponibile" in output
+        assert "No links available" in output
     
     @patch('sys.stdout', new_callable=StringIO)
     def test_print_menu_footer(self, mock_stdout):
         """Test stampa footer del menu"""
         self.cli_display.print_menu_footer(5)
-        
+ 
         output = mock_stdout.getvalue()
         assert "1-5" in output  # Range opzioni
-        assert "Opzioni disponibili" in output
-        assert "Apri tutti" in output
-        assert "Esci" in output
+        assert "Available options" in output
+        assert "Open all" in output
+        assert "Exit" in output
     
     @patch('builtins.input', return_value='test input')
     def test_get_user_input(self, mock_input):
@@ -162,21 +161,21 @@ class TestCLIDisplay:
         mock_entry.url = "https://example.com"
         
         self.cli_display.print_opening_message(mock_entry)
-        
+ 
         output = mock_stdout.getvalue()
         assert "Test Link" in output
         assert "https://example.com" in output
-        assert "Apertura di:" in output
+        assert "Opening" in output
     
     @patch('sys.stdout', new_callable=StringIO)
     def test_print_opening_all_message(self, mock_stdout):
         """Test messaggio apertura tutti i link"""
         self.cli_display.print_opening_all_message(10)
-        
+ 
         output = mock_stdout.getvalue()
         assert "10 link" in output
-        assert "Apertura di tutti" in output
-        assert "molte schede" in output  # Warning
+        assert "Opening all" in output
+        assert "many browser tabs" in output  # Warning
     
     @patch('sys.stdout', new_callable=StringIO)
     def test_print_success_message(self, mock_stdout):
@@ -188,11 +187,11 @@ class TestCLIDisplay:
     
     @patch('sys.stdout', new_callable=StringIO)
     def test_print_error_message(self, mock_stdout):
-        """Test messaggio di errore"""
-        self.cli_display.print_error_message("Errore test")
+        """Test error message"""
+        self.cli_display.print_error_message("Test error")
         
         output = mock_stdout.getvalue()
-        assert "Errore test" in output
+        assert "Test error" in output
     
     @patch('sys.stdout', new_callable=StringIO)
     def test_print_warning_message(self, mock_stdout):
@@ -220,9 +219,9 @@ class TestCLIDisplay:
         }
         
         self.cli_display.print_statistics(stats)
-        
+ 
         output = mock_stdout.getvalue()
-        assert "Statistiche" in output
+        assert "Statistics" in output
         assert "3" in output  # total_files
         assert "10" in output  # total_links
         assert "5" in output  # unique_domains
@@ -231,11 +230,11 @@ class TestCLIDisplay:
     def test_print_help(self, mock_stdout):
         """Test stampa aiuto"""
         self.cli_display.print_help()
-        
+ 
         output = mock_stdout.getvalue()
-        assert "Aiuto" in output
-        assert "Formato file" in output
-        assert "Comandi disponibili" in output
+        assert "Help" in output
+        assert "File .dokk format" in output
+        assert "Available commands" in output
         assert ".dokk" in output
     
     @patch('builtins.input', return_value='s')
@@ -272,9 +271,9 @@ class TestCLIDisplay:
     def test_print_farewell(self, mock_stdout):
         """Test messaggio di addio"""
         self.cli_display.print_farewell()
-        
+ 
         output = mock_stdout.getvalue()
-        assert "Arrivederci" in output
+        assert "Goodbye" in output
         assert "dokkument" in output
     
     def test_clear_screen(self):
@@ -321,5 +320,5 @@ class TestCLIDisplayIntegration:
         assert "Test Application" in output
         assert "1 link" in output
         assert "Test Entry" in output
-        assert "[1]" in output
-        assert "Opzioni disponibili" in output
+        assert "[ 1]" in output
+        assert "Available options" in output

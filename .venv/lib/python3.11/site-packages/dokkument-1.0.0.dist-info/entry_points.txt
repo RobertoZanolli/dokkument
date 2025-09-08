@@ -1,3 +1,2 @@
 [console_scripts]
-dokkget = dokkument.main:main
 dokkument = dokkument.main:main
