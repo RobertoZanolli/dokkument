@@ -104,9 +104,9 @@ class ConfigManager:
                     self._load_config_from_file(config_path)
                     self._config_file = config_path
                     break
-                except Exception as e:
+                except Exception as config_error:  # pylint: disable=broad-except
                     print(
-                        f"Warning: Error loading configuration from {config_path}: {e}"
+                        f"Warning: Error loading configuration from {config_path}: {config_error}"
                     )
                     continue
 
@@ -198,8 +198,8 @@ class ConfigManager:
             self._config_file = config_path
             return True
 
-        except Exception as e:
-            print(f"Error saving configuration: {e}")
+        except Exception as config_error:  # pylint: disable=broad-except
+            print(f"Error saving configuration: {config_error}")
             return False
 
     def reset_to_defaults(self):
@@ -212,7 +212,7 @@ class ConfigManager:
 
     def get_all_config(self) -> Dict[str, Any]:
         """Return a copy of all configuration"""
-        import copy
+        import copy  # pylint: disable=import-outside-toplevel
 
         return copy.deepcopy(self._config)
 
@@ -265,8 +265,8 @@ class ConfigManager:
                     "All elements in security.allowed_schemes must be strings"
                 )
 
-        except Exception as e:
-            errors.append(f"General error in validation: {e}")
+        except Exception as config_error:  # pylint: disable=broad-except
+            errors.append(f"General error in validation: {config_error}")
 
         return errors
 
@@ -361,8 +361,8 @@ class ConfigManager:
             with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(template, f, indent=2, ensure_ascii=False)
             return True
-        except Exception as e:
-            print(f"Error exporting template: {e}")
+        except Exception as config_error:  # pylint: disable=broad-except
+            print(f"Error exporting template: {config_error}")
             return False
 
 

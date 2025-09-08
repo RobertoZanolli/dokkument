@@ -4,10 +4,9 @@ Provides a flexible architecture for adding new commands
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Optional, Dict, Any
+from typing import Dict
 from pathlib import Path
 
-from .parser import DokkEntry
 from .link_manager import LinkManager
 from .browser_opener import BrowserOpener
 from .cli_display import CLIDisplay
@@ -36,18 +35,23 @@ class Command(ABC):
         Returns:
             bool: True if the command should continue the loop, False to exit
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_description(self) -> str:
         """Returns the command description"""
-        pass
+        raise NotImplementedError
 
 
 class OpenLinkCommand(Command):
     """Command to open a single link"""
 
-    def execute(self, index: int) -> bool:
+    def execute(self, *args, **kwargs) -> bool:
+        index = kwargs.get("index", args[0] if args else None)
+        if not isinstance(index, int):
+            self.cli_display.print_error_message("Invalid number. Provide a valid index")
+            return True
+
         entry = self.link_manager.get_entry_by_index(index)
         if entry is None:
             self.cli_display.print_error_message(f"Invalid number: {index}")
@@ -72,7 +76,7 @@ class OpenLinkCommand(Command):
 class OpenAllLinksCommand(Command):
     """Command to open all links"""
 
-    def execute(self) -> bool:
+    def execute(self, *args, **kwargs) -> bool:
         entries = self.link_manager.get_all_entries()
         if not entries:
             self.cli_display.print_warning_message("No links to open")
@@ -114,7 +118,7 @@ class OpenAllLinksCommand(Command):
 class ListLinksCommand(Command):
     """Command to show only the list of links"""
 
-    def execute(self) -> bool:
+    def execute(self, *args, **kwargs) -> bool:
         entries = self.link_manager.get_all_entries()
         show_files = self.config.get("display.group_by_file", True)
 
@@ -130,7 +134,7 @@ class ListLinksCommand(Command):
 class ReloadCommand(Command):
     """Command to reload/rescan .dokk files"""
 
-    def execute(self) -> bool:
+    def execute(self, *args, **kwargs) -> bool:
         self.cli_display.print_info_message("Rescanning .dokk files...")
 
         current_path = Path.cwd()
@@ -148,7 +152,7 @@ class ReloadCommand(Command):
                 self.cli_display.print_menu(entries, show_files)
                 self.cli_display.print_menu_footer(len(entries))
 
-        except Exception as e:
+        except (OSError, RuntimeError, ValueError) as e:
             self.cli_display.print_error_message(f"Error during rescan: {e}")
 
         return True
@@ -160,7 +164,7 @@ class ReloadCommand(Command):
 class StatisticsCommand(Command):
     """Command to show statistics on links"""
 
-    def execute(self) -> bool:
+    def execute(self, *args, **kwargs) -> bool:
         stats = self.link_manager.get_statistics()
         self.cli_display.print_statistics(stats)
 
@@ -180,7 +184,7 @@ class StatisticsCommand(Command):
 class HelpCommand(Command):
     """Command to show help"""
 
-    def execute(self) -> bool:
+    def execute(self, *args, **kwargs) -> bool:
         self.cli_display.print_help()
         return True
 
@@ -191,7 +195,8 @@ class HelpCommand(Command):
 class ConfigCommand(Command):
     """Command to manage configuration"""
 
-    def execute(self, action: str = "show") -> bool:
+    def execute(self, *args, **kwargs) -> bool:
+        action = kwargs.get("action", args[0] if args else "show")
         if action == "show":
             self.config.print_config_info()
         elif action == "export":
@@ -224,7 +229,7 @@ class ConfigCommand(Command):
 class ValidateLinksCommand(Command):
     """Command to validate all links"""
 
-    def execute(self) -> bool:
+    def execute(self, *args, **kwargs) -> bool:
         self.cli_display.print_info_message("Validating all links...")
 
         invalid_links = self.link_manager.validate_all_links()
@@ -250,9 +255,9 @@ class ValidateLinksCommand(Command):
 class ExportCommand(Command):
     """Command to export links in various formats"""
 
-    def execute(
-        self, format_type: str = "text", output_file: Optional[str] = None
-    ) -> bool:
+    def execute(self, *args, **kwargs) -> bool:
+        format_type = kwargs.get("format_type", args[0] if args else "text")
+        output_file = kwargs.get("output_file", args[1] if len(args) > 1 else None)
         try:
             content = self.link_manager.export_to_format(format_type)
 
@@ -268,7 +273,7 @@ class ExportCommand(Command):
 
         except ValueError as e:
             self.cli_display.print_error_message(f"Unsupported format: {e}")
-        except Exception as e:
+        except (OSError, RuntimeError) as e:
             self.cli_display.print_error_message(f"Error during export: {e}")
 
         return True
@@ -280,7 +285,8 @@ class ExportCommand(Command):
 class SearchCommand(Command):
     """Command to search links by description"""
 
-    def execute(self, search_term: str) -> bool:
+    def execute(self, *args, **kwargs) -> bool:
+        search_term = kwargs.get("search_term", args[0] if args else "")
         if not search_term.strip():
             self.cli_display.print_warning_message("Empty search term")
             return True
@@ -305,7 +311,7 @@ class SearchCommand(Command):
 class QuitCommand(Command):
     """Command to exit the application"""
 
-    def execute(self) -> bool:
+    def execute(self, *args, **kwargs) -> bool:
         self.cli_display.print_farewell()
         return False  # Interrupts the main loop
 
@@ -356,7 +362,7 @@ class CommandInvoker:
         if command:
             try:
                 return command.execute(*args, **kwargs)  # type: ignore
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 self.cli_display.print_error_message(
                     f"Error executing command: {e}"
                 )
@@ -375,7 +381,7 @@ class CommandInvoker:
         """Registers a new custom command"""
         self.commands[name] = command
 
-    def parse_and_execute_user_input(self, user_input: str, total_entries: int) -> bool:
+    def parse_and_execute_user_input(self, user_input: str, total_entries: int) -> bool:  # pylint: disable=too-many-return-statements
         """
         Parses user input and executes the appropriate command
 
@@ -396,11 +402,10 @@ class CommandInvoker:
             index = int(user_input)
             if 1 <= index <= total_entries:
                 return self.execute_command("open_link", index)  # type: ignore
-            else:
-                self.cli_display.print_error_message(
-                    f"Invalid number. Enter a number between 1 and {total_entries}"
-                )
-                return True
+            self.cli_display.print_error_message(
+                f"Invalid number. Enter a number between 1 and {total_entries}"
+            )
+            return True
 
         # Handle single commands
         command_map = {
@@ -420,21 +425,20 @@ class CommandInvoker:
             cmd = parts[0]
             args = parts[1:]
 
-            if cmd == "search" or cmd == "find":
+            if cmd in ("search", "find"):
                 search_term = " ".join(args)
                 return self.execute_command("search", search_term)
-            elif cmd == "export":
+            if cmd == "export":
                 format_type = args[0] if args else "text"
                 output_file = args[1] if len(args) > 1 else None
                 return self.execute_command("export", format_type, output_file)
-            elif cmd == "config" or cmd == "c":
+            if cmd in ("config", "c"):
                 action = args[0] if args else "show"
                 return self.execute_command("config", action)
 
         # Handle single commands
-        command = command_map.get(user_input)
-        if command:
-            return self.execute_command(command)
+        if user_input in command_map:
+            return self.execute_command(command_map[user_input])
 
         # Unrecognized command
         self.cli_display.print_error_message(

@@ -57,7 +57,7 @@ class BrowserOpener:
                 ]
                 return any(Path(path).exists() for path in app_paths if path)
 
-            elif self.platform == "windows":
+            if self.platform == "windows":
                 # On Windows check common registry or known paths
                 common_paths = [
                     r"C:\Program Files\Google\Chrome\Application\chrome.exe"
@@ -72,11 +72,10 @@ class BrowserOpener:
                 ]
                 return any(Path(path).exists() for path in common_paths if path)
 
-            else:
-                # On Linux use which
-                return shutil.which(browser_name) is not None
+            # On Linux use which
+            return shutil.which(browser_name) is not None
 
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             return False
 
 
@@ -98,11 +97,10 @@ class BrowserOpener:
         try:
             if browser_name:
                 return self._open_with_specific_browser(url, browser_name)
-            else:
-                return self._open_with_default_browser(url)
+            return self._open_with_default_browser(url)
 
-        except Exception as e:
-            print(f"Error opening URL {url}: {e}")
+        except Exception as open_error:
+            print(f"Error opening URL {url}: {open_error}")
             return False
 
     def _is_valid_url(self, url: str) -> bool:
@@ -113,7 +111,7 @@ class BrowserOpener:
                 "http",
                 "https",
             ]
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             return False
 
     def _open_with_default_browser(self, url: str) -> bool:
@@ -123,8 +121,8 @@ class BrowserOpener:
             webbrowser.open(url)
             return True
 
-        except Exception as e1:
-            print(f"Error with webbrowser.open: {e1}")
+        except Exception as webbrowser_error:
+            print(f"Error with webbrowser.open: {webbrowser_error}")
 
             # Second attempt: use system-specific commands
             try:
@@ -137,8 +135,8 @@ class BrowserOpener:
 
                 return True
 
-            except Exception as e2:
-                print(f"Error with system command: {e2}")
+            except Exception as system_error:
+                print(f"Error with system command: {system_error}")
                 return False
 
     def _open_with_specific_browser(self, url: str, browser_name: str) -> bool:
@@ -193,8 +191,8 @@ class BrowserOpener:
 
             return True
 
-        except Exception as e:
-            print(f"Error opening with specific browser {browser_name}: {e}")
+        except Exception as browser_error:
+            print(f"Error opening with specific browser {browser_name}: {browser_error}")
             return False
 
     def open_multiple_urls(
@@ -214,7 +212,7 @@ class BrowserOpener:
         Returns:
             List[bool]: List of results for each URL
         """
-        import time
+        import time  # pylint: disable=import-outside-toplevel
 
         results = []
         for i, url in enumerate(urls):
@@ -273,13 +271,13 @@ class BrowserOpener:
             # Simple test without actually opening anything
             webbrowser.get()
             return True
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             return False
 
     def print_browser_info(self):
         """Prints information about available browsers"""
         print(f"Operating System: {platform.system()} {platform.release()}")
-        print(f"Available browsers:")
+        print("Available browsers:")
 
         availability = self.test_browser_availability()
         for browser, available in availability.items():

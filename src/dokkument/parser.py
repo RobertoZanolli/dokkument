@@ -5,14 +5,12 @@ Manages reading and interpreting .dokk files for the dokkument project
 
 import re
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict
 from abc import ABC, abstractmethod
 
 
 class ParseError(Exception):
     """Exception raised when a parsing error occurs"""
-
-    pass
 
 
 class DokkEntry:
@@ -39,7 +37,10 @@ class DokkEntry:
         return f"{self.description} -> {self.url}"
 
     def __repr__(self):
-        return f"DokkEntry(description='{self.description}', url='{self.url}', file_path='{self.file_path}')"
+        return (
+            f"DokkEntry(description='{self.description}', "
+            f"url='{self.url}', file_path='{self.file_path}')"
+        )
 
 
 class BaseParser(ABC):
@@ -48,12 +49,10 @@ class BaseParser(ABC):
     @abstractmethod
     def parse(self, file_path: Path) -> List[DokkEntry]:
         """Parses a .dokk file and returns a list of DokkEntry"""
-        pass
 
     @abstractmethod
     def can_handle(self, file_path: Path) -> bool:
         """Determines if this parser can handle the specified file."""
-        pass
 
 
 class StandardDokkParser(BaseParser):
@@ -94,10 +93,12 @@ class StandardDokkParser(BaseParser):
             try:
                 with open(file_path, "r", encoding="latin-1") as f:
                     content = f.read()
-            except Exception as e:
-                raise ParseError(f"Unable to read file {file_path}: {e}")
-        except Exception as e:
-            raise ParseError(f"Error reading file {file_path}: {e}")
+            except Exception as fallback_error:
+                raise ParseError(
+                    f"Unable to read file {file_path}: {fallback_error}"
+                ) from fallback_error
+        except OSError as os_error:
+            raise ParseError(f"Error reading file {file_path}: {os_error}") from os_error
 
         line_number = 0
         for line in content.splitlines():
@@ -117,7 +118,7 @@ class StandardDokkParser(BaseParser):
                 except ParseError as e:
                     raise ParseError(
                         f"Error at line {line_number} in {file_path}: {e}"
-                    )
+                    ) from e
             else:
                 raise ParseError(
                     f"Invalid format at line {line_number} in {file_path}: {line}"
@@ -190,7 +191,8 @@ class DokkFileScanner:
             recursive: If True, also scans subdirectories
 
         Returns:
-            Dict[Path, List[DokkEntry]]: Dictionary with file path as key and list of entries as value
+            Dict[Path, List[DokkEntry]]: Dictionary with file path as key and
+                list of entries as value
         """
         if not root_path.exists():
             raise FileNotFoundError(f"Directory not found: {root_path}")
@@ -208,9 +210,9 @@ class DokkFileScanner:
                 entries = self.parser_factory.parse_file(file_path)
                 if entries:  # Only if there are valid entries
                     results[file_path] = entries
-            except Exception as e:
+            except Exception as parse_error:
                 # Log the error but continue scanning
-                print(f"Warning: Error parsing {file_path}: {e}")
+                print(f"Warning: Error parsing {file_path}: {parse_error}")
                 continue
 
         return results

@@ -38,6 +38,7 @@ Requires-Dist: colorama>=0.4.4; extra == "enhanced"
 Provides-Extra: dev
 Requires-Dist: pytest>=7.0.0; extra == "dev"
 Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
+Requires-Dist: pylint>=2.15.0; extra == "dev"
 Requires-Dist: black>=22.0.0; extra == "dev"
 Requires-Dist: isort>=5.0.0; extra == "dev"
 Requires-Dist: flake8>=5.0.0; extra == "dev"

@@ -1,5 +1,5 @@
 """
-Test per il modulo parser
+Tests for the parser module
 """
 
 import pytest
@@ -17,10 +17,10 @@ from dokkument.parser import (
 
 
 class TestDokkEntry:
-    """Test per la classe DokkEntry"""
+    """Tests for the DokkEntry class"""
 
     def test_valid_entry_creation(self):
-        """Test creazione entry valida"""
+        """Test valid entry creation"""
         entry = DokkEntry(
             "Documentazione API", "https://api.example.com/docs", Path("/tmp/test.dokk")
         )
@@ -39,17 +39,17 @@ class TestDokkEntry:
         assert entry.url == "https://api.example.com/docs"
 
     def test_empty_description_raises_error(self):
-        """Test che descrizione vuota sollevi errore"""
+        """Test that empty description raises error"""
         with pytest.raises(ParseError):
             DokkEntry("", "https://api.example.com/docs", Path("/tmp/test.dokk"))
 
     def test_empty_url_raises_error(self):
-        """Test che URL vuoto sollevi errore"""
+        """Test that empty URL raises error"""
         with pytest.raises(ParseError):
             DokkEntry("Documentazione API", "", Path("/tmp/test.dokk"))
 
     def test_invalid_url_scheme_raises_error(self):
-        """Test che schema URL non valido sollevi errore"""
+        """Test that invalid URL scheme raises error"""
         with pytest.raises(ParseError):
             DokkEntry("Documentazione API", "ftp://example.com", Path("/tmp/test.dokk"))
 
@@ -60,7 +60,7 @@ class TestDokkEntry:
 
 
 class TestStandardDokkParser:
-    """Test per il parser standard"""
+    """Tests for the standard parser"""
 
     def setup_method(self):
         """Setup per ogni test"""
@@ -108,7 +108,7 @@ Questa riga non va bene"""
             f.write(content)
             f.flush()
 
-            with pytest.raises(ParseError, match="Formato non valido"):
+            with pytest.raises(ParseError, match="Invalid format"):
                 self.parser.parse(Path(f.name))
 
     def test_parse_empty_file(self):
@@ -140,20 +140,20 @@ Questa riga non va bene"""
 
 
 class TestDokkParserFactory:
-    """Test per la factory dei parser"""
+    """Tests for the parser factory"""
 
     def setup_method(self):
         """Setup per ogni test"""
         self.factory = DokkParserFactory()
 
     def test_create_parser_for_dokk_file(self):
-        """Test creazione parser per file .dokk"""
+        """Test parser creation for .dokk file"""
         parser = self.factory.create_parser(Path("test.dokk"))
         assert parser is not None
         assert isinstance(parser, StandardDokkParser)
 
     def test_create_parser_for_unsupported_file(self):
-        """Test creazione parser per file non supportato"""
+        """Test parser creation for unsupported file"""
         parser = self.factory.create_parser(Path("test.txt"))
         assert parser is None
 
@@ -172,12 +172,12 @@ class TestDokkParserFactory:
 
     def test_parse_file_no_parser(self):
         """Test parsing file senza parser disponibile"""
-        with pytest.raises(ParseError, match="Nessun parser disponibile"):
+        with pytest.raises(ParseError, match="No parser available"):
             self.factory.parse_file(Path("test.txt"))
 
 
 class TestDokkFileScanner:
-    """Test per lo scanner di file"""
+    """Tests for the file scanner"""
 
     def setup_method(self):
         """Setup per ogni test"""
@@ -191,8 +191,8 @@ class TestDokkFileScanner:
         shutil.rmtree(self.temp_dir)
 
     def test_scan_directory_with_dokk_files(self):
-        """Test scansione directory con file .dokk"""
-        # Crea file di test
+        """Test directory scanning with .dokk files"""
+        # Create test file
         (self.temp_dir / "test1.dokk").write_text('"Link 1" -> "https://example1.com"')
         (self.temp_dir / "test2.dokk").write_text('"Link 2" -> "https://example2.com"')
         (self.temp_dir / "other.txt").write_text("Not a dokk file")
@@ -211,8 +211,8 @@ class TestDokkFileScanner:
         assert total_entries == 2
 
     def test_scan_directory_recursive(self):
-        """Test scansione ricorsiva"""
-        # Crea struttura directory
+        """Test recursive scanning"""
+        # Create directory structure
         subdir = self.temp_dir / "subdir"
         subdir.mkdir()
 
@@ -228,7 +228,7 @@ class TestDokkFileScanner:
         assert len(results_non_recursive) == 1
 
     def test_scan_nonexistent_directory(self):
-        """Test scansione directory inesistente"""
+        """Test scanning non-existent directory"""
         with pytest.raises(FileNotFoundError):
             self.scanner.scan_directory(Path("/nonexistent/directory"))
 
@@ -247,11 +247,11 @@ class TestIntegration:
     """Test di integrazione tra i componenti"""
 
     def test_full_workflow(self):
-        """Test workflow completo: creazione file -> scanning -> parsing"""
+        """Test complete workflow: file creation -> scanning -> parsing"""
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
 
-            # Crea file .dokk con contenuto valido
+            # Create .dokk file with valid content
             dokk_content = '''# File di documentazione
 "Documentazione API" -> "https://api.example.com/docs"
 "Repository GitLab" -> "https://gitlab.com/company/project"
