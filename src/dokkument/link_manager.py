@@ -192,7 +192,7 @@ class LinkManager:
                 elif not parsed.netloc:
                     invalid_links.append((entry, "Missing domain in URL"))
 
-            except Exception as parse_error:
+            except Exception as parse_error:  # pylint: disable=broad-except
                 invalid_links.append((entry, f"URL parsing error: {parse_error}"))
 
         return invalid_links

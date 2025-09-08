@@ -99,7 +99,7 @@ class BrowserOpener:
                 return self._open_with_specific_browser(url, browser_name)
             return self._open_with_default_browser(url)
 
-        except Exception as open_error:
+        except Exception as open_error:  # pylint: disable=broad-except
             print(f"Error opening URL {url}: {open_error}")
             return False
 
@@ -121,7 +121,7 @@ class BrowserOpener:
             webbrowser.open(url)
             return True
 
-        except Exception as webbrowser_error:
+        except Exception as webbrowser_error:  # pylint: disable=broad-except
             print(f"Error with webbrowser.open: {webbrowser_error}")
 
             # Second attempt: use system-specific commands
@@ -135,7 +135,7 @@ class BrowserOpener:
 
                 return True
 
-            except Exception as system_error:
+            except Exception as system_error:  # pylint: disable=broad-except
                 print(f"Error with system command: {system_error}")
                 return False
 
@@ -143,57 +143,65 @@ class BrowserOpener:
         """Opens the URL with a specific browser"""
         try:
             # First attempt: use webbrowser with the specified browser
-            try:
-                browser = webbrowser.get(browser_name)
-                browser.open(url)
+            if self._try_webbrowser_open(browser_name, url):
                 return True
-            except webbrowser.Error:
-                pass
 
-            # Second attempt: use direct commands
-            if self.platform == "windows":
-                if browser_name.lower() in ["chrome", "google-chrome"]:
-                    subprocess.run(
-                        [r"C:\Program Files\Google\Chrome\Application\chrome.exe", url],
-                        check=True,
-                    )
-                elif browser_name.lower() == "firefox":
-                    subprocess.run(
-                        [r"C:\Program Files\Mozilla Firefox\firefox.exe", url],
-                        check=True,
-                    )
-                elif browser_name.lower() in ["msedge", "edge"]:
-                    subprocess.run(
-                        [
-                            r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-                            url,
-                        ],
-                        check=True,
-                    )
-                else:
-                    return False
+            # Second attempt: use platform-specific commands
+            return self._try_platform_specific_browser(browser_name, url)
 
-            elif self.platform == "darwin":
-                if browser_name.lower() == "safari":
-                    subprocess.run(["open", "-a", "Safari", url], check=True)
-                elif browser_name.lower() in ["chrome", "google-chrome"]:
-                    subprocess.run(["open", "-a", "Google Chrome", url], check=True)
-                elif browser_name.lower() == "firefox":
-                    subprocess.run(["open", "-a", "Firefox", url], check=True)
-                elif browser_name.lower() == "opera":
-                    subprocess.run(["open", "-a", "Opera", url], check=True)
-                else:
-                    return False
-
-            else:  # Linux
-                # On Linux, try using the browser name directly
-                subprocess.run([browser_name, url], check=True)
-
-            return True
-
-        except Exception as browser_error:
+        except Exception as browser_error:  # pylint: disable=broad-except
             print(f"Error opening with specific browser {browser_name}: {browser_error}")
             return False
+
+    def _try_webbrowser_open(self, browser_name: str, url: str) -> bool:
+        """Try to open URL using webbrowser module"""
+        try:
+            browser = webbrowser.get(browser_name)
+            browser.open(url)
+            return True
+        except webbrowser.Error:
+            return False
+
+    def _try_platform_specific_browser(self, browser_name: str, url: str) -> bool:
+        """Try to open URL using platform-specific browser commands"""
+        browser_lower = browser_name.lower()
+        if self.platform == "windows":
+            return self._open_windows_browser(browser_lower, url)
+        if self.platform == "darwin":
+            return self._open_macos_browser(browser_lower, url)
+        # Linux
+        subprocess.run([browser_name, url], check=True)
+        return True
+
+    def _open_windows_browser(self, browser_name: str, url: str) -> bool:
+        """Open browser on Windows"""
+        windows_browsers = {
+            "chrome": r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+            "google-chrome": r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+            "firefox": r"C:\Program Files\Mozilla Firefox\firefox.exe",
+            "msedge": r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+            "edge": r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+        }
+        browser_path = windows_browsers.get(browser_name)
+        if browser_path:
+            subprocess.run([browser_path, url], check=True)
+            return True
+        return False
+
+    def _open_macos_browser(self, browser_name: str, url: str) -> bool:
+        """Open browser on macOS"""
+        macos_browsers = {
+            "safari": "Safari",
+            "chrome": "Google Chrome",
+            "google-chrome": "Google Chrome",
+            "firefox": "Firefox",
+            "opera": "Opera",
+        }
+        app_name = macos_browsers.get(browser_name)
+        if app_name:
+            subprocess.run(["open", "-a", app_name, url], check=True)
+            return True
+        return False
 
     def open_multiple_urls(
         self,

@@ -210,7 +210,7 @@ class DokkFileScanner:
                 entries = self.parser_factory.parse_file(file_path)
                 if entries:  # Only if there are valid entries
                     results[file_path] = entries
-            except Exception as parse_error:
+            except Exception as parse_error:  # pylint: disable=broad-except
                 # Log the error but continue scanning
                 print(f"Warning: Error parsing {file_path}: {parse_error}")
                 continue
